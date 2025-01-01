@@ -15,13 +15,27 @@ jobs:
     - name: Set env vars
       run: |
         echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+        echo "PSPDEV=${GITHUB_WORKSPACE}/pspdev" >> $GITHUB_ENV
+        echo "${GITHUB_WORKSPACE}/pspdev/bin" >> $GITHUB_PATH
 
     - name: Install packages
       run: |
         sudo apt update
         sudo apt install -y gcc-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-x86-64 g++-mingw-w64-i686 make
 
-    - name: Build 32 bit JA
+    - name: Download PSP SDK
+      run: |
+        curl -sL https://github.com/pspdev/pspdev/releases/download/v20240701/pspdev-ubuntu-latest-x86_64.tar.gz | tar xvz -C ./
+
+    - name: Build PSP
+      run: |
+        mkdir psp
+        cd RemoteJoyLite_psp
+        make
+        mv RemoteJoyLite.prx ../psp/RemoteJoyLite.prx
+        cd ..
+
+    - name: Build PC 32 bit JA
       run: |
         mkdir x86
         cd RemoteJoyLite_pc
@@ -31,7 +45,7 @@ jobs:
         make clean
         cd ..
 
-    - name: Build 32 bit EN
+    - name: Build PC 32 bit EN
       run: |
         cd RemoteJoyLite_pc
         make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_EN
@@ -39,7 +53,7 @@ jobs:
         make clean
         cd ..
 
-    - name: Build 64 bit JA
+    - name: Build PC 64 bit JA
       run: |
         mkdir x64
         cd RemoteJoyLite_pc
@@ -49,7 +63,7 @@ jobs:
         make clean
         cd ..
 
-    - name: Build 64 bit EN
+    - name: Build PC 64 bit EN
       run: |
         cd RemoteJoyLite_pc
         make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_EN
@@ -68,4 +82,5 @@ jobs:
           x64/RemoteJoyLite_EN_64.exe
           x86/libusb0.dll
           x64/libusb0.dll
+          psp/RemoteJoyLite.prx
         if-no-files-found: error

@@ -4,22 +4,34 @@ rm -rf x86
 mkdir x86
 rm -rf x64
 mkdir x64
+rm -rf psp
+mkdir psp
 
-cd RemoteJoyLite_pc
-make clean
-make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_JA
-mv RemoteJoyLite.exe ../x86/RemoteJoyLite_JA_32.exe
-make clean
-make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_EN
-mv RemoteJoyLite.exe ../x86/RemoteJoyLite_EN_32.exe
-cp libusb0_x86.dll ../x86/libusb0.dll
+(
+	export PATH="/usr/local/pspdev/bin:$PATH"
+	export LD_LIBRARY_PATH="/usr/local/pspsdk/lib:$LD_LIBRARY_PATH"
+	cd RemoteJoyLite_psp
+	make
+	mv RemoteJoyLite.prx ../psp/
+	make clean
+)
 
-make clean
-make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_JA
-mv RemoteJoyLite.exe ../x64/RemoteJoyLite_JA_64.exe
-make clean
-make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_EN
-mv RemoteJoyLite.exe ../x64/RemoteJoyLite_EN_64.exe
-cp libusb0_x64.dll ../x64/libusb0.dll
-cd ..
+(
+	cd RemoteJoyLite_pc
+	make clean
+	make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_JA
+	mv RemoteJoyLite.exe ../x86/RemoteJoyLite_JA_32.exe
+	make clean
+	make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_EN
+	mv RemoteJoyLite.exe ../x86/RemoteJoyLite_EN_32.exe
+	cp libusb0_x86.dll ../x86/libusb0.dll
 
+	make clean
+	make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_JA
+	mv RemoteJoyLite.exe ../x64/RemoteJoyLite_JA_64.exe
+	make clean
+	make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_EN
+	mv RemoteJoyLite.exe ../x64/RemoteJoyLite_EN_64.exe
+	cp libusb0_x64.dll ../x64/libusb0.dll
+	make clean
+)

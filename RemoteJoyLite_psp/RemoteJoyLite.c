@@ -116,9 +116,9 @@ static void BuildFrame( void )
 	int pitch, orgfmt, sync, size = 0;
 	struct JoyScrHeader *joy = ScreenBuff;
 
-	sceDisplayGetFrameBufferInternal( 0, &src, &pitch, &orgfmt, (int)&sync );
+	sceDisplayGetFrameBufferInternal( 0, &src, &pitch, &orgfmt, &sync );
 	if ( src == NULL ){
-		sceDisplayGetFrameBufferInternal( 2, &src, &pitch, &orgfmt, (int)&sync );
+		sceDisplayGetFrameBufferInternal( 2, &src, &pitch, &orgfmt, &sync );
 	}
 	if ( src == NULL ){ return; }
 	if ( joy == NULL ){ return; }
