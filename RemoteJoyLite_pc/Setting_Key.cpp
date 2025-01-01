@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <windows.h>
 /*------------------------------------------------------------------------------*/
 /* Setting_Key																	*/
 /*------------------------------------------------------------------------------*/
@@ -75,10 +77,11 @@ void WmCreateKeyConf( HWND hWnd, HINSTANCE hInst )
 void WmCommandKeyConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 {
 	switch ( id ){
-	case 240 ... 260:
+	case 240 ... 260: {
 		int no = SendMessage( KeyConfLst[id-240], CB_GETCURSEL, 0, 0 );
 		SettingData.KeyConf[id-240] = KeyNameTable[no].dik;
 		break;
+	}
 	case 270:
 		if ( SendMessage( KeyConfUse, BM_GETCHECK, 0, 0 ) == BST_CHECKED ){
 			SettingData.KeyUse = 1;

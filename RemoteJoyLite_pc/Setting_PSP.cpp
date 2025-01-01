@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <windows.h>
 /*------------------------------------------------------------------------------*/
 /* Setting_PSP																	*/
 /*------------------------------------------------------------------------------*/
@@ -184,26 +186,31 @@ void WmCommandPSPConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 	WCHAR buff[16];
 
 	switch ( id ){
-	case 601:
+	case 601: {
 		int no0 = SendMessage( PSPModeLst, CB_GETCURSEL, 0, 0 );
 		SettingData.PSPMode = no0;
 		break;
-	case 603:
+	}
+	case 603: {
 		int no1 = SendMessage( PSPAdr1Lst, CB_GETCURSEL, 0, 0 );
 		SettingData.PSPAdr1 = no1;
 		break;
-	case 605:
+	}
+	case 605: {
 		int no2 = SendMessage( PSPAdr2Lst, CB_GETCURSEL, 0, 0 );
 		SettingData.PSPAdr2 = no2;
 		break;
-	case 607:
+	}
+	case 607: {
 		int no3 = SendMessage( PSPPriLst, CB_GETCURSEL, 0, 0 );
 		SettingData.PSPPri = no3;
 		break;
-	case 609:
+	}
+	case 609: {
 		int no4 = SendMessage( PSPFPSLst, CB_GETCURSEL, 0, 0 );
 		SettingData.PSPFPS = no4;
 		break;
+	}
 	case 610:
 		if ( SendMessage( PSPDispChk, BM_GETCHECK, 0, 0 ) == BST_CHECKED ){
 			SettingData.PSPDisp = 1;
@@ -218,7 +225,7 @@ void WmCommandPSPConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 			SettingData.PSPAsync = 0;
 		}
 		break;
-	case 621:
+	case 621: {
 		int no5 = SendMessage( PSPTrnsLst, CB_GETCURSEL, 0, 0 );
 		SettingData.PSPRectX = Preset[no5].x;
 		SettingData.PSPRectY = Preset[no5].y;
@@ -227,6 +234,7 @@ void WmCommandPSPConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 		SetPSPRectString();
 		RemoteJoyLite_SendPSPCmd();
 		break;
+	}
 	case 623:
 		if ( GetWindowText( PSPRectXLst, buff, 16 ) > 0 ){
 			SettingData.PSPRectX = _wtoi( buff );

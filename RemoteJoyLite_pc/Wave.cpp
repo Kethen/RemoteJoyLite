@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <windows.h>
 /*------------------------------------------------------------------------------*/
 /* Movie																		*/
 /*------------------------------------------------------------------------------*/
@@ -137,7 +139,7 @@ static void WaveInSync( void )
 		if ( SettingData.WAVOut != 0 ){ WaveInStep = 1; }
 		break;
 	case 1:
-		mmRes = waveInOpen( &HdWaveIn, WaveInUse, &WaveFormat, (DWORD)WaveInProc, 0, CALLBACK_FUNCTION );
+		mmRes = waveInOpen( &HdWaveIn, WaveInUse, &WaveFormat, (DWORD_PTR)WaveInProc, 0, CALLBACK_FUNCTION );
 		if ( WaveInErrorCheck( mmRes ) != FALSE ){ return; }
 		WaveInStep = 2;
 		break;
@@ -257,7 +259,7 @@ static void WaveOutSync( void )
 		if ( SettingData.WAVOut != 0 ){ WaveOutStep = 1; }
 		break;
 	case 1:
-		mmRes = waveOutOpen( &HdWaveOut, WaveOutUse, &WaveFormat, (DWORD)WaveOutProc, 0, CALLBACK_FUNCTION );
+		mmRes = waveOutOpen( &HdWaveOut, WaveOutUse, &WaveFormat, (DWORD_PTR)WaveOutProc, 0, CALLBACK_FUNCTION );
 		if ( WaveOutErrorCheck( mmRes ) != FALSE ){ return; }
 		WaveOutStep = 2;
 		break;

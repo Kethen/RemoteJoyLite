@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <windows.h>
 /*------------------------------------------------------------------------------*/
 /* Setting_Macro																*/
 /*------------------------------------------------------------------------------*/
@@ -167,10 +169,11 @@ void WmCommandMacroConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 			WmEnableMacroWindow();
 		}
 		break;
-	case 702:
+	case 702: {
 		int no1 = SendMessage( McrRecNo, CB_GETCURSEL, 0, 0 );
 		SettingData.McrRecNo = no1;
 		break;
+	}
 	case 703:
 		if ( SendMessage( McrRecAna, BM_GETCHECK, 0, 0 ) == BST_CHECKED ){
 			SettingData.McrRecAna = 1;
@@ -189,13 +192,15 @@ void WmCommandMacroConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 		SettingData.McrButton[id - 750] = SettingButton();
 		SetMacroButtonTxt();
 		break;
-	case 780 ... 783:
+	case 780 ... 783: {
 		int no2 = SendMessage( McrPlayLst[id-780], CB_GETCURSEL, 0, 0 );
 		SettingData.McrType[id-780] = no2;
 		break;
-	case 790 ... 793:
+	}
+	case 790 ... 793: {
 		int no3 = SendMessage( McrPlayMno[id-790], CB_GETCURSEL, 0, 0 );
 		SettingData.McrPlayNo[id-790] = no3;
 		break;
+	}
 	}
 }

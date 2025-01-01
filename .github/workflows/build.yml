@@ -1,0 +1,71 @@
+name: Build PC package
+
+on: [ push, pull_request, workflow_dispatch ]
+
+# written referencing apollo save tool psp's CI
+
+jobs:
+  build_pkg:
+    runs-on: ubuntu-22.04
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set env vars
+      run: |
+        echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+
+    - name: Install packages
+      run: |
+        sudo apt update
+        sudo apt install -y gcc-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-x86-64 g++-mingw-w64-i686 make
+
+    - name: Build 32 bit JA
+      run: |
+        mkdir x86
+        cd RemoteJoyLite_pc
+        make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_JA
+        mv RemoteJoyLite.exe ../x86/RemoteJoyLite_JA_32.exe
+        cp libusb0_x86.dll ../x86/libusb0.dll
+        make clean
+        cd ..
+
+    - name: Build 32 bit EN
+      run: |
+        cd RemoteJoyLite_pc
+        make ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_EN
+        mv RemoteJoyLite.exe ../x86/RemoteJoyLite_EN_32.exe
+        make clean
+        cd ..
+
+    - name: Build 64 bit JA
+      run: |
+        mkdir x64
+        cd RemoteJoyLite_pc
+        make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_JA
+        mv RemoteJoyLite.exe ../x64/RemoteJoyLite_JA_64.exe
+        cp libusb0_x64.dll ../x64/libusb0.dll
+        make clean
+        cd ..
+
+    - name: Build 64 bit EN
+      run: |
+        cd RemoteJoyLite_pc
+        make ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_EN
+        mv RemoteJoyLite.exe ../x64/RemoteJoyLite_EN_64.exe
+        make clean
+        cd ..
+
+    - name: Push package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: RemoteJoyLite_${{ env.sha_name }}
+        path: |
+          x86/RemoteJoyLite_JA_32.exe
+          x86/RemoteJoyLite_EN_32.exe
+          x64/RemoteJoyLite_JA_64.exe
+          x64/RemoteJoyLite_EN_64.exe
+          x86/libusb0.dll
+          x64/libusb0.dll
+        if-no-files-found: error

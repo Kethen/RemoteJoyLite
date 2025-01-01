@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <windows.h>
 /*------------------------------------------------------------------------------*/
 /* RemoteJoyLite																*/
 /*------------------------------------------------------------------------------*/
@@ -19,6 +21,7 @@
 #include "Wave.h"
 #include "Setting.h"
 #include "../remotejoy.h"
+#include "lusb0_usb.h"
 
 /*------------------------------------------------------------------------------*/
 /* define																		*/
@@ -520,6 +523,8 @@ static void Trancetexture_ARGB8888( D3DLOCKED_RECT *plockRect )
 		dst += addp;
 	}
 }
+
+#define bzero(dst, size) memset(dst, 0, size)
 
 /*------------------------------------------------------------------------------*/
 /* Trancetexture_UNKNOWN														*/

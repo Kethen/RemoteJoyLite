@@ -3,27 +3,26 @@ MAIN_OBJ = WinMain.o RemoteJoyLite.res RemoteJoyLite.o Direct3D.o DirectInput.o 
 CAPT_OBJ = Bitmap.o Movie.o Wave.o Macro.o
 CONF_OBJ = Setting.o Setting_Joy.o Setting_Key.o Setting_Etc.o Setting_Filt.o Setting_Capt.o Setting_PSP.o Setting_Macro.o
 OBJS     = $(MAIN_OBJ) $(CAPT_OBJ) $(CONF_OBJ)
-LIBS     = -ld3d9 -ldinput -ldxguid -lwinmm -lusb -lvfw32
-LANGUAGE =  LANG_JA
+LIBS     = -ld3d9 -ldinput -ldxguid -lwinmm -lvfw32
+#LANGUAGE =  LANG_JA
 #LANGUAGE =  LANG_EN
 CFLAGS   = -O3 -Wall -g -DWINVER=0x0500 -DUNICODE -DLANGUAGE=$(LANGUAGE)
-LDFLAGS  = -L/usr/local/lib -mwindows -mno-cygwin
+LDFLAGS  = -L/usr/local/lib -L./ -mwindows -static-libgcc -static-libstdc++
 RCFLAGS  = -O coff
 
 .SUFFIXES: .cpp .c .rc .res .o
 
 $(TARGET) : $(OBJS)
-	g++ $(LDFLAGS) $(OBJS) $(LIBS) -o $(TARGET)
-	strip $(TARGET)
+	$(CPPC) $(LDFLAGS) $(OBJS) $(LIBS) -lusb0_$(ARCH) -o $(TARGET)
 
 .c.o:
-	gcc $(CFLAGS) -c $*.c
+	$(CC) $(CFLAGS) -c $*.c
 
 .cpp.o:
-	gcc $(CFLAGS) -c $*.cpp
+	$(CPPC) $(CFLAGS) -std=c++03 -c $*.cpp
 
 .rc.res:
-	windres $(RCFLAGS) $*.rc -o $*.res
+	$(WINDRES) $(RCFLAGS) $*.rc -o $*.res
 
 clean: 
 	@rm -rf *.exe *.o *.res *~
