@@ -227,8 +227,9 @@ static void do_bulk( void *read, int read_len )
 		int rest_size = data_size - read_size;
 		if ( rest_size > HOSTFS_MAX_BLOCK ){ rest_size = HOSTFS_MAX_BLOCK; }
 		int ret = usb_bulk_read( UsbDev, 0x81, &BulkBlock[read_size], rest_size, 3000 );
-		if ( ret != rest_size ){ break; }
-		read_size += rest_size;
+		if (ret == -110 || ret == -ETIMEDOUT) {continue;}
+		if ( ret < 0 ){; break;}
+		read_size += ret;
 	}
 	bulk_remotejoy( BulkBlock, data_size );
 }
@@ -251,13 +252,15 @@ static void UsbOpenDevice( void )
 				UsbDev = usb_open( dev );
 				if ( UsbDev == NULL ){ continue; }
 				if ( usb_set_configuration( UsbDev, 1 ) == 0 ){
-					if ( usb_claim_interface( UsbDev, 0 ) == 0 ){ return; }
+					if ( usb_claim_interface( UsbDev, 0 ) == 0 ){ return; }else{ printf("%s: failed to claim interface\n", __func__); }
+				}else{
+					printf("%s: failed to set config\n", __func__);
 				}
 				usb_close( UsbDev );
 				UsbDev = NULL;
 			}
 		}
-		Sleep( 1 );
+		Sleep( 1000 );
 		if ( UsbhostfsExit != 0 ){ return; }
 	}
 }
@@ -300,8 +303,10 @@ static DWORD WINAPI UsbDeviceMain( LPVOID lpv )
 			while ( UsbhostfsExit == 0 ){
 				int data[512/sizeof(int)];
 				int len = usb_bulk_read( UsbDev, 0x81, (char *)data, 512, 1000 );
-				if ( len == -ETIMEDOUT){ continue; }
-				if ( len < 4 ){ break; }
+				// XXX hoo boy, error codes don't match, just put the linux one here for now
+				if ( len == -ETIMEDOUT || len == -110 ){ continue; }
+				if ( len < 0 ){ printf("%s: usb read error %d\n", __func__, len); break; }
+				if ( len < 4 ){ printf("%s: tiny read\n", __func__); continue; }
 				switch ( data[0] ){
 				default           : do_default( data, len );	break;
 				case HOSTFS_MAGIC : do_hostfs ( data, len );	break;
