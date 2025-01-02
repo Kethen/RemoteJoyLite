@@ -704,7 +704,7 @@ void RemoteJoyLiteSync( void )
 	struct timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	uint64_t time_since_last_input = now.tv_nsec - last_input.tv_nsec + (now.tv_sec - last_input.tv_sec) * 1000000000;
-	if(time_since_last_input > (1000000000/120)){
+	if(time_since_last_input > (1000000000/75)){
 		int	AxisData = work.axis_x | (work.axis_y << 16) | (work.axis_rx << 8) | (work.axis_ry << 24);
 		send_event( TYPE_JOY_DAT, work.button, AxisData );
 		clock_gettime(CLOCK_MONOTONIC, &last_input);
