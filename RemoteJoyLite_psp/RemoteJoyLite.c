@@ -323,10 +323,12 @@ static int MainThread( SceSize args, void *argp )
 			continue;
 		}
 #ifndef RELEASE
-		int HcountComp = GetHcountMkFrame() - GetHcountUsbWait();
-		debug_printf( "%d\n", HcountComp  );
-		debug_printf( "%d\n", GetHcountUsbWait() );
-		DebugTrance( DebugMode );
+		if(DebugMode){
+			int HcountComp = GetHcountMkFrame() - GetHcountUsbWait();
+			debug_printf( "%d\n", HcountComp  );
+			debug_printf( "%d\n", GetHcountUsbWait() );
+		}
+		DebugTrance( 1 );
 #endif
 		if ( joyevent.type == TYPE_JOY_DAT ){
 			DoJoyDat( joyevent.value1, joyevent.value2 );

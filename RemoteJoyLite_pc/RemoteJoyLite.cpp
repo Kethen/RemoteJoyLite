@@ -116,6 +116,9 @@ static void async_remotejoy( void *read, int read_len )
 
 	if ( cmd->mode == ASYNC_CMD_DEBUG ){
 		dprintf( 0, 0, "%s", (void *)(cmd+1) );
+		printf("psp debug message begin:\n");
+		printf("%s", (void *)(cmd + 1));
+		printf("psp debug message end:\n");
 	}
 }
 
