@@ -18,6 +18,7 @@ extern void RemoteJoyLite_ToggleDisp( void );
 extern void RemoteJoyLite_SendPSPCmd( void );
 extern void RemoteJoyLite_SetButton( int button );
 extern void RemoteJoyLite_SetAxis( int x, int y );
+extern void RemoteJoyLite_SetAxisR( int x, int y );
 extern int RemoteJoyLite_GetButton( void );
 extern int RemoteJoyLite_GetAxisXY( void );
 extern void RemoteJoyLite_SaveBitmap( void );

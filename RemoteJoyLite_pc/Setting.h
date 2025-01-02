@@ -77,6 +77,9 @@ typedef struct {
 	long long		McrButton[5];
 	int				McrType[4];
 	int				McrPlayNo[4];
+
+	// post 019 additions
+	int				JoyAnalogR;
 } SETTING_DATA;
 
 /*------------------------------------------------------------------------------*/

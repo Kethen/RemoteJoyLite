@@ -5,7 +5,9 @@
 static CW_DATA CWD_JoyIndexNo  = { 255,  40, 80, 250, 194, CWD_COMBO, FNT_NORM, NULL };
 static CW_DATA CWD_JoyStatGrp  = { 250,  65, 90, 155, 195, CWD_GROUP, FNT_BOLD, L"Joy Status" };
 static CW_DATA CWD_JoyStatInfo = { 260,  82, 75, 135, 196, CWD_EDIT,  FNT_NORM, NULL };
-static CW_DATA CWD_JoyAnaText  = { 248, 243, 40,  21, 190, CWD_TEXT,  FNT_BOLD, L"Analog" };
+static CW_DATA CWD_JoyAnaText  = { 248, 243, 40,  21, 190, CWD_TEXT,  FNT_BOLD, L"Ana L" };
 static CW_DATA CWD_JoyAnaCBox  = { 292, 239, 50, 250, 191, CWD_COMBO, FNT_NORM, NULL };
-static CW_DATA CWD_JoyMgnText  = { 248, 265, 40,  21, 192, CWD_TEXT,  FNT_BOLD, L"Margin" };
-static CW_DATA CWD_JoyMgnCBox  = { 292, 261, 50, 250, 193, CWD_COMBO, FNT_NORM, NULL };
+static CW_DATA CWD_JoyAnaRText  = { 248, 265, 40,  21, 198, CWD_TEXT,  FNT_BOLD, L"Ana R" };
+static CW_DATA CWD_JoyAnaRCBox  = { 292, 261, 50, 250, 197, CWD_COMBO, FNT_NORM, NULL };
+static CW_DATA CWD_JoyMgnText  = { 248, 287, 40,  21, 192, CWD_TEXT,  FNT_BOLD, L"Margin" };
+static CW_DATA CWD_JoyMgnCBox  = { 292, 283, 50, 250, 193, CWD_COMBO, FNT_NORM, NULL };

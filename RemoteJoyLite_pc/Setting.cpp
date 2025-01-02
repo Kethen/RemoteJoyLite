@@ -108,43 +108,17 @@ void SettingLoad( void )
 	SettingData.PSPRectH         = 272;
 }
 
-/*------------------------------------------------------------------------------*/
-/* UpdateButton																	*/
-/*------------------------------------------------------------------------------*/
-static void UpdateButton( AkindDI *pMainDI )
-{
-	int button = 0;
-	int joy_no = SettingData.JoyNo;
-	int Analog = SettingData.JoyAnalog;
-	int axis_x = 0;
-	int axis_y = 0;
-
-	if ( SettingData.KeyUse != 0 ){
-		for ( int i=0; i<21; i++ ){
-			int dik  = SettingData.KeyConf[i];
-			int mask = (1 << ButtonIndex[i]);
-			if ( dik == 0 ){ continue; }
-			if ( pMainDI->CheckKeyData( dik ) != FALSE ){ button |= mask; }
-		}
-	}
-
-	long long data = pMainDI->GetJoyButton( joy_no );
-	for ( int i=0; i<21; i++ ){
-		int mask = (1 << ButtonIndex[i]);
-		if ( data & SettingData.JoyConf[i] ){ button |= mask; }
-	}
-	RemoteJoyLite_SetButton( button );
-
-	if ( Analog != 0 ){
-		if ( Analog == 1 ){
+static void fetch_analog(AkindDI *pMainDI, int joy_no, int conf, int &axis_x, int &axis_y){
+	if ( conf != 0 ){
+		if ( conf == 1 ){
 			axis_x = pMainDI->GetJoyAxis( joy_no, 0 );
 			axis_y = pMainDI->GetJoyAxis( joy_no, 1 );
 		}
-		if ( Analog == 2 ){
+		if ( conf == 2 ){
 			axis_x = pMainDI->GetJoyRot( joy_no, 0 );
 			axis_y = pMainDI->GetJoyRot( joy_no, 1 );
 		}
-		if ( Analog == 3 ){
+		if ( conf == 3 ){
 			axis_x = pMainDI->GetJoyAxis( joy_no, 2 );
 			axis_y = pMainDI->GetJoyRot( joy_no, 2 );
 		}
@@ -169,6 +143,40 @@ static void UpdateButton( AkindDI *pMainDI )
 			}
 		}
 	}
+}
+
+/*------------------------------------------------------------------------------*/
+/* UpdateButton																	*/
+/*------------------------------------------------------------------------------*/
+static void UpdateButton( AkindDI *pMainDI )
+{
+	int button = 0;
+	int joy_no = SettingData.JoyNo;
+	int Analog = SettingData.JoyAnalog;
+	int AnalogR = SettingData.JoyAnalogR;
+	int axis_x = 0;
+	int axis_y = 0;
+	int axis_rx = 0;
+	int axis_ry = 0;
+
+	if ( SettingData.KeyUse != 0 ){
+		for ( int i=0; i<21; i++ ){
+			int dik  = SettingData.KeyConf[i];
+			int mask = (1 << ButtonIndex[i]);
+			if ( dik == 0 ){ continue; }
+			if ( pMainDI->CheckKeyData( dik ) != FALSE ){ button |= mask; }
+		}
+	}
+
+	long long data = pMainDI->GetJoyButton( joy_no );
+	for ( int i=0; i<21; i++ ){
+		int mask = (1 << ButtonIndex[i]);
+		if ( data & SettingData.JoyConf[i] ){ button |= mask; }
+	}
+	RemoteJoyLite_SetButton( button );
+
+	fetch_analog(pMainDI, joy_no, Analog, axis_x, axis_y);
+	fetch_analog(pMainDI, joy_no, AnalogR, axis_rx, axis_ry);
 
 	if ( button & 0x01000000 ){ axis_y -= MAX_VAL; }
 	if ( button & 0x02000000 ){ axis_x += MAX_VAL; }
@@ -182,7 +190,10 @@ static void UpdateButton( AkindDI *pMainDI )
 	}
 	axis_x = (axis_x + 32768)/256;
 	axis_y = (axis_y + 32768)/256;
-	RemoteJoyLite_SetAxis( axis_x, axis_y );
+	axis_rx = (axis_rx + 32768)/256;
+	axis_ry = (axis_ry + 32768)/256;
+	RemoteJoyLite_SetAxis(axis_x, axis_y);
+	RemoteJoyLite_SetAxisR(axis_rx, axis_ry);
 }
 
 /*------------------------------------------------------------------------------*/
@@ -287,7 +298,7 @@ static void TabChange( HWND hWnd )
 /*------------------------------------------------------------------------------*/
 /* WmCreateSettingTab															*/
 /*------------------------------------------------------------------------------*/
-static CW_DATA CWD_TabCtrl = { 5, 5, 350, 292, 0, CWD_TABCTRL,  FNT_NORM, NULL };
+static CW_DATA CWD_TabCtrl = { 5, 5, 350, 310, 0, CWD_TABCTRL,  FNT_NORM, NULL };
 
 static void WmCreateSettingTab( HWND hWnd )
 {

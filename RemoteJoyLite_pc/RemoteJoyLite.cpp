@@ -53,6 +53,8 @@ static struct {
 	int			button;
 	int			axis_x;
 	int			axis_y;
+	int         axis_rx;
+	int         axis_ry;
 	int			save_flag;
 	int			save_bmp;
 	int			save_avi;
@@ -154,6 +156,7 @@ static void send_event( int type, int value1, int value2 )
 	data.event.type    = type;
 	data.event.value1  = value1;
 	data.event.value2  = value2;
+	printf("%s: %d, 0x%08x, 0x%08x\n", __func__, type, value1, value2);
 	ret = usb_bulk_write( UsbDev, 3, (char *)&data, sizeof(data), 10000 );
 	if ( ret < 0 ){ return; }
 }
@@ -628,6 +631,8 @@ BOOL RemoteJoyLiteInit( AkindD3D *pAkindD3D )
 	work.disp_rot = SettingData.DispRot;
 	work.axis_x = 32768/256;
 	work.axis_y = 32768/256;
+	work.axis_rx = 32768/256;
+	work.axis_ry = 32768/256;
 	Bitmap_Init( &work.psp_bmp );
 	RemoteJoyLite_CalcGammaTable();
 
@@ -694,7 +699,7 @@ void RemoteJoyLiteDraw( AkindD3D *pAkindD3D )
 /*------------------------------------------------------------------------------*/
 void RemoteJoyLiteSync( void )
 {
-	int	AxisData = work.axis_x | (work.axis_y << 16);
+	int	AxisData = work.axis_x | (work.axis_y << 16) | (work.axis_rx << 8) | (work.axis_ry << 24);
 	send_event( TYPE_JOY_DAT, work.button, AxisData );
 
 	if ( work.disp_debug != 0 ){
@@ -778,6 +783,12 @@ void RemoteJoyLite_SetAxis( int x, int y )
 {
 	work.axis_x = x & 0xFF;
 	work.axis_y = y & 0xFF;
+}
+
+void RemoteJoyLite_SetAxisR( int x, int y )
+{
+	work.axis_rx = x & 0XFF;
+	work.axis_ry = y & 0xFF;
 }
 
 /*------------------------------------------------------------------------------*/

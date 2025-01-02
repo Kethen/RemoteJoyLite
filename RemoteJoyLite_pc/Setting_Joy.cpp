@@ -23,7 +23,9 @@ static HWND JoyConfBtn[22];
 static HWND JoyConfBox[22];
 static HWND JoyConfTxt[22];
 static HWND JoyAnaText;
+static HWND JoyAnaRText;
 static HWND JoyAnaCBox;
+static HWND JoyAnaRCBox;
 static HWND JoyMgnText;
 static HWND JoyMgnCBox;
 static HWND JoyIndexNo;
@@ -56,7 +58,9 @@ void WmDestroyJoyConf( HWND hWnd )
 		DestroyWindow( JoyConfTxt[i] );
 	}
 	DestroyWindow( JoyAnaText );
+	DestroyWindow( JoyAnaRText );
 	DestroyWindow( JoyAnaCBox );
+	DestroyWindow( JoyAnaRCBox );
 	DestroyWindow( JoyMgnText );
 	DestroyWindow( JoyMgnCBox );
 	DestroyWindow( JoyIndexNo );
@@ -98,11 +102,17 @@ void WmCreateJoyConf( HWND hWnd, HINSTANCE hInst )
 	JoyStatInfo = MyCreateWindow( &CWD_JoyStatInfo, hWnd, hInst );
 	/* Analog Conf */
 	JoyAnaText = MyCreateWindow( &CWD_JoyAnaText, hWnd, hInst );
+	JoyAnaRText = MyCreateWindow( &CWD_JoyAnaRText, hWnd, hInst );
 	JoyAnaCBox = MyCreateWindow( &CWD_JoyAnaCBox, hWnd, hInst );
+	JoyAnaRCBox = MyCreateWindow( &CWD_JoyAnaRCBox, hWnd, hInst );
 	for ( int i=0; i<4; i++ ){
 		SendMessage( JoyAnaCBox, CB_ADDSTRING, 0, (LPARAM)DirectName[i] );
 	}
+	for ( int i=0; i<4; i++ ){
+		SendMessage( JoyAnaRCBox, CB_ADDSTRING, 0, (LPARAM)DirectName[i] );
+	}
 	SendMessage( JoyAnaCBox, CB_SETCURSEL, SettingData.JoyAnalog, 0 );
+	SendMessage( JoyAnaRCBox, CB_SETCURSEL, SettingData.JoyAnalogR, 0 );
 	/* Margin Conf */
 	JoyMgnText = MyCreateWindow( &CWD_JoyMgnText, hWnd, hInst );
 	JoyMgnCBox = MyCreateWindow( &CWD_JoyMgnCBox, hWnd, hInst );
@@ -129,6 +139,9 @@ void WmCommandJoyConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 		break;
 	case 191:
 		SettingData.JoyAnalog = SendMessage( JoyAnaCBox, CB_GETCURSEL, 0, 0 );
+		break;
+	case 197:
+		SettingData.JoyAnalogR = SendMessage( JoyAnaRCBox, CB_GETCURSEL, 0, 0 );
 		break;
 	case 193:
 		SettingData.JoyMargin = SendMessage( JoyMgnCBox, CB_GETCURSEL, 0, 0 );

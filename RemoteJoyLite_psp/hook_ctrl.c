@@ -61,6 +61,8 @@ static void AddValues( SceCtrlData *data, int count, int neg )
 	u32 button = ButtonData;
 	int Ly = (AnalogData >> 16) & 0xFF;
 	int Lx = (AnalogData >>  0) & 0xFF;
+	int Ry = (AnalogData >> 24) & 0xFF;
+	int Rx = (AnalogData >>  8) & 0xFF;
 
 	asm __volatile__ ( "move %0, $k1" : "=r"(k1) );
 	if ( k1 ){ button &= ~CalcButtonMask(); }
@@ -69,6 +71,9 @@ static void AddValues( SceCtrlData *data, int count, int neg )
 		else	  { data[i].Buttons |=  button; }
 		data[i].Lx = CalcAnalog( data[i].Lx, Lx );
 		data[i].Ly = CalcAnalog( data[i].Ly, Ly );
+		// assume this is the only plugin injecting rx ry
+		data[i].Rsrv[0] = Rx;
+		data[i].Rsrv[1] = Ry;
 	}
 }
 
@@ -279,6 +284,12 @@ static int sceCtrlReadBufferNegativePatched(SceCtrlData *pad_data, int count){
 }
 
 void hookCtrlBuffer( void ){
+	// what are those for huh
+	JoyData.Lx = 0x80;
+	JoyData.Ly = 0x80;
+	JoyData.Rsrv[0] = 0x80;
+	JoyData.Rsrv[1] = 0x80;
+
 	#if 0
 	SceModule *module = sceKernelFindModuleByName( "sceController_Service" );
 	if ( module == NULL ){
