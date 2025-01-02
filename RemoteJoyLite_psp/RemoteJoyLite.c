@@ -302,13 +302,13 @@ static int MainThread( SceSize args, void *argp )
 	sceKernelDcacheWritebackInvalidateAll();
 	sceKernelIcacheInvalidateAll();
 
+	// don't usb yet
+	sceKernelDelayThread(1000000 * 2);
+
 	UsbAsyncFlush();
 	if ( UsbWait() != 0 ){ return( 0 ); }
 
 	UsbAsyncWrite( &ScreenProbeCmd, sizeof(ScreenProbeCmd) );
-
-	// don't do events yet
-	sceKernelDelayThread(1000000 * 2);
 
 	while ( 1 ){
 		struct JoyEvent joyevent;
