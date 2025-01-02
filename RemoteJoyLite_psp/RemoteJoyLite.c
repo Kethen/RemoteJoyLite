@@ -307,6 +307,9 @@ static int MainThread( SceSize args, void *argp )
 
 	UsbAsyncWrite( &ScreenProbeCmd, sizeof(ScreenProbeCmd) );
 
+	// don't do events yet
+	sceKernelDelayThread(1000000 * 2);
+
 	while ( 1 ){
 		struct JoyEvent joyevent;
 		int len = UsbAsyncRead( (void *)&joyevent, sizeof(joyevent) );
