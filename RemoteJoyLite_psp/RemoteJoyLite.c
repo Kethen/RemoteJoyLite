@@ -292,6 +292,9 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 /*------------------------------------------------------------------------------*/
 static int MainThread( SceSize args, void *argp )
 {
+	// don't usb yet
+	sceKernelDelayThread(1000000 * 3);
+
 	if ( UsbStart() != 0 ){ return( 0 ); }
 
 	hookInterrupt();
@@ -301,9 +304,6 @@ static int MainThread( SceSize args, void *argp )
 
 	sceKernelDcacheWritebackInvalidateAll();
 	sceKernelIcacheInvalidateAll();
-
-	// don't usb yet
-	sceKernelDelayThread(1000000 * 2);
 
 	UsbAsyncFlush();
 	if ( UsbWait() != 0 ){ return( 0 ); }
