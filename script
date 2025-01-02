@@ -11,6 +11,7 @@ mkdir psp
 	export PATH="/usr/local/pspdev/bin:$PATH"
 	export LD_LIBRARY_PATH="/usr/local/pspsdk/lib:$LD_LIBRARY_PATH"
 	cd RemoteJoyLite_psp
+	make clean
 	make
 	mv RemoteJoyLite.prx ../psp/
 	make clean
