@@ -36,3 +36,11 @@ mkdir psp
 	cp libusb0_x64.dll ../x64/libusb0.dll
 	make clean
 )
+
+rm -rf x86_linux
+rm -rf x64_linux
+
+cp -r x86 x86_linux
+cp -r x64 x64_linux
+cp -r linux_libusb/x86/libusb0.dll.so x86_linux/libusb0.dll
+cp -r linux_libusb/x64/libusb0.dll.so x64_linux/libusb0.dll

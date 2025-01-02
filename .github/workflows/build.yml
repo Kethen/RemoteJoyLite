@@ -71,6 +71,15 @@ jobs:
         make clean
         cd ..
 
+    - name: Arrage linux packaging
+      run: |
+        cp -r x86 x86_linux
+        cp -r x64 x64_linux
+        cp linux_libusb/x86/libusb0.dll.so x86_linux/libusb0.dll
+        cp linux_libusb/x64/libusb0.dll.so x64_linux/libusb0.dll
+        cp 60-psp-b-usb.rules x86_linux
+        cp 60-psp-b-usb.rules x64-linux
+
     - name: Push package artifact
       uses: actions/upload-artifact@v3
       with:
@@ -82,5 +91,13 @@ jobs:
           x64/RemoteJoyLite_EN_64.exe
           x86/libusb0.dll
           x64/libusb0.dll
+          x86_linux/RemoteJoyLite_JA_32.exe
+          x86_linux/RemoteJoyLite_EN_32.exe
+          x64_linux/RemoteJoyLite_JA_64.exe
+          x64_linux/RemoteJoyLite_EN_64.exe
+          x86_linux/libusb0.dll
+          x64_linux/libusb0.dll
+          x86_linux/60-psp-b-usb.rules
+          x64_linux/60-psp-b-usb.rules
           psp/RemoteJoyLite.prx
         if-no-files-found: error
