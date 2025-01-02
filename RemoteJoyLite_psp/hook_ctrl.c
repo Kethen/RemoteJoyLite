@@ -178,6 +178,7 @@ static int MyCtrlReadLatch( SceCtrlLatch *latch )
 /*------------------------------------------------------------------------------*/
 /* hookCtrlLatch																*/
 /*------------------------------------------------------------------------------*/
+#if 0
 void hookCtrlLatch( void )
 {
 	SceModule *module = sceKernelFindModuleByName( "sceController_Service" );
@@ -210,7 +211,7 @@ void hookCtrlLatch( void )
 		HookFuncSetting( hook_addr, MyCtrlReadLatch );
 	}
 }
-
+#endif
 /*******************************************************************************/
 /*------------------------------------------------------------------------------*/
 /* hookCtrlSetData																*/
@@ -328,4 +329,9 @@ void hookCtrlBuffer( void ){
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
 
 	#endif
+}
+
+void hookCtrlLatch( void ){
+	HIJACK_SYSCALL_STUB(sceCtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
+	HIJACK_SYSCALL_STUB(sceCtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
 }
