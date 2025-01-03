@@ -22,7 +22,7 @@ static SceCtrlData JoyData;
 static SceCtrlLatch JoyLatch;
 static u32 LatchCount = 0;
 static u32 ButtonData = 0;
-static u32 AnalogData = 0x00800080;
+static u32 AnalogData = 0x80808080;
 static int (*sceCtrlBuffer_Func)( SceCtrlData *, int, int ) = NULL;
 static int (*sceCtrlPeekLatch_Func)( SceCtrlLatch * ) = NULL;
 static int (*sceCtrlReadLatch_Func)( SceCtrlLatch * ) = NULL;
