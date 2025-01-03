@@ -173,7 +173,12 @@ static void UpdateButton( AkindDI *pMainDI )
 		int mask = (1 << ButtonIndex[i]);
 		if ( data & SettingData.JoyConf[i] ){ button |= mask; }
 	}
-	RemoteJoyLite_SetButton( button );
+
+	int psp_button = button & 0x00FFFFFF;
+	if(SettingData.PSPInputOverride){
+		psp_button = psp_button | 0x04000000;
+	}
+	RemoteJoyLite_SetButton( psp_button );
 
 	fetch_analog(pMainDI, joy_no, Analog, axis_x, axis_y);
 	fetch_analog(pMainDI, joy_no, AnalogR, axis_rx, axis_ry);
@@ -192,6 +197,7 @@ static void UpdateButton( AkindDI *pMainDI )
 	axis_y = (axis_y + 32768)/256;
 	axis_rx = (axis_rx + 32768)/256;
 	axis_ry = (axis_ry + 32768)/256;
+
 	RemoteJoyLite_SetAxis(axis_x, axis_y);
 	RemoteJoyLite_SetAxisR(axis_rx, axis_ry);
 }

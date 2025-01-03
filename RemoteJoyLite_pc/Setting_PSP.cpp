@@ -37,6 +37,7 @@ static HWND PSPRectYLst;
 static HWND PSPRectWLst;
 static HWND PSPRectHLst;
 static HWND PSPDbgChk;
+static HWND PSPInputOverrideChk;
 
 #define PRESET_NUM		3
 
@@ -73,6 +74,7 @@ void WmDestroyPSPConf( HWND hWnd )
 	DestroyWindow( PSPRectWLst );
 	DestroyWindow( PSPRectHLst );
 	DestroyWindow( PSPDbgChk );
+	DestroyWindow( PSPInputOverrideChk );
 	WmDestroySaveButton( hWnd );
 }
 
@@ -172,6 +174,11 @@ void WmCreatePSPConf( HWND hWnd, HINSTANCE hInst )
 	PSPDbgChk = MyCreateWindow( &CWD_PSPDbgChk, hWnd, hInst );
 	if ( SettingData.PSPDbg != 0 ){
 		SendMessage( PSPDbgChk, BM_SETCHECK, (WPARAM)BST_CHECKED, 0 );
+	}
+
+	PSPInputOverrideChk = MyCreateWindow( &CWD_PSPInputOverrideChk, hWnd, hInst );
+	if ( SettingData.PSPInputOverride != 0 ){
+		SendMessage( PSPInputOverrideChk, BM_SETCHECK, (WPARAM)BST_CHECKED, 0 );
 	}
 
 	WmCreateSaveButton( hWnd );
@@ -280,6 +287,13 @@ void WmCommandPSPConf( HWND hWnd, WORD code, WORD id, HWND hCtl )
 			SettingData.PSPDbg = 1;
 		} else {
 			SettingData.PSPDbg = 0;
+		}
+		break;
+	case 651:
+		if ( SendMessage( PSPInputOverrideChk, BM_GETCHECK, 0, 0 ) == BST_CHECKED ){
+			SettingData.PSPInputOverride = 1;
+		} else {
+			SettingData.PSPInputOverride = 0;
 		}
 		break;
 	}

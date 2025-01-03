@@ -781,7 +781,7 @@ void RemoteJoyLite_SendPSPCmd( void )
 /*------------------------------------------------------------------------------*/
 void RemoteJoyLite_SetButton( int button )
 {
-	work.button = button & 0x00FFFFFF;
+	work.button = button;
 }
 
 /*------------------------------------------------------------------------------*/

@@ -274,7 +274,7 @@ static void DoJoyCmd( unsigned int value1, unsigned int value2 )
 /*------------------------------------------------------------------------------*/
 /* DoJoyDat																		*/
 /*------------------------------------------------------------------------------*/
-static u32 PreButton = 0;
+u32 PreButton = 0;
 
 static void DoJoyDat( u32 NowButton, u32 value2 )
 {

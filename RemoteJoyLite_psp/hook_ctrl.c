@@ -64,13 +64,33 @@ static void AddValues( SceCtrlData *data, int count, int neg )
 	int Ry = (AnalogData >> 24) & 0xFF;
 	int Rx = (AnalogData >>  8) & 0xFF;
 
+	int override_input = button & 0x04000000;
+	button = button & 0x00FFFFFF;
+
 	asm __volatile__ ( "move %0, $k1" : "=r"(k1) );
-	if ( k1 ){ button &= ~CalcButtonMask(); }
+	if( k1 ){
+		button &= ~CalcButtonMask();
+	}
+
 	for ( i=0; i<count; i++ ){
-		if ( neg ){ data[i].Buttons &= ~button; }
-		else	  { data[i].Buttons |=  button; }
-		data[i].Lx = CalcAnalog( data[i].Lx, Lx );
-		data[i].Ly = CalcAnalog( data[i].Ly, Ly );
+		if(override_input){
+			if( neg ){
+				data[i].Buttons = ~button;
+			}else{
+				data[i].Buttons = button;
+			}
+			data[i].Lx = Lx;
+			data[i].Ly = Ly;
+		}else{
+			if( neg ){
+				data[i].Buttons &= ~button;
+			}else{
+				data[i].Buttons |=  button;
+			}
+			data[i].Lx = CalcAnalog( data[i].Lx, Lx );
+			data[i].Ly = CalcAnalog( data[i].Ly, Ly );
+		}
+
 		// assume this is the only plugin injecting rx ry
 		data[i].Rsrv[0] = Rx;
 		data[i].Rsrv[1] = Ry;
@@ -136,7 +156,8 @@ static int MyCtrlPeekLatch( SceCtrlLatch *latch )
 {
 	int ret  = sceCtrlPeekLatch_Func( latch );
 	int intc = pspSdkDisableInterrupts();
-	if ( (JoyLatch.uiMake|JoyLatch.uiBreak|JoyLatch.uiPress) != 0 ){
+	int override_input = ButtonData & 0x04000000;
+	if ( (JoyLatch.uiMake|JoyLatch.uiBreak|JoyLatch.uiPress) != 0 || override_input ){
 		latch->uiMake    = JoyLatch.uiMake;
 		latch->uiBreak   = JoyLatch.uiBreak;
 		latch->uiPress   = JoyLatch.uiPress;
@@ -144,8 +165,8 @@ static int MyCtrlPeekLatch( SceCtrlLatch *latch )
 	} else if ( JoyLatch.uiRelease == 0 ){
 		latch->uiMake    = 0;
 		latch->uiBreak   = 0;
-		latch->uiPress   =  ButtonData;
-		latch->uiRelease = ~ButtonData;
+		latch->uiPress   =  (ButtonData & 0x00FFFFFF);
+		latch->uiRelease = ~(ButtonData & 0x00FFFFFF);
 	}
 	pspSdkEnableInterrupts( intc );
 	return( ret );
@@ -158,7 +179,8 @@ static int MyCtrlReadLatch( SceCtrlLatch *latch )
 {
 	int ret  = sceCtrlReadLatch_Func( latch );
 	int intc = pspSdkDisableInterrupts();
-	if ( (JoyLatch.uiMake|JoyLatch.uiBreak|JoyLatch.uiPress) != 0 ){
+	int override_input = ButtonData & 0x04000000;
+	if ( (JoyLatch.uiMake|JoyLatch.uiBreak|JoyLatch.uiPress) != 0 || override_input ){
 		latch->uiMake    = JoyLatch.uiMake;
 		latch->uiBreak   = JoyLatch.uiBreak;
 		latch->uiPress   = JoyLatch.uiPress;
@@ -167,8 +189,8 @@ static int MyCtrlReadLatch( SceCtrlLatch *latch )
 		if ( LatchCount < 60 ){
 			latch->uiMake    = 0;
 			latch->uiBreak   = 0;
-			latch->uiPress   =  ButtonData;
-			latch->uiRelease = ~ButtonData;
+			latch->uiPress   =  (ButtonData & 0x00FFFFFF);
+			latch->uiRelease = ~(ButtonData & 0x00FFFFFF);
 			LatchCount++;
 		}
 	}
@@ -225,6 +247,8 @@ void hookCtrlSetData( u32 PreData, u32 NowData, u32 Analog )
 {
 	ButtonData = NowData;
 	AnalogData = Analog;
+	NowData = NowData & 0x00FFFFFF;
+	PreData = PreData & 0x00FFFFFF;
 	JoyLatch.uiMake    |= ~PreData &  NowData;
 	JoyLatch.uiBreak   |=  PreData & ~NowData;
 	JoyLatch.uiPress   |=  NowData;

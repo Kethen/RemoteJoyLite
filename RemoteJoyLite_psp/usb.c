@@ -16,6 +16,8 @@
 /*------------------------------------------------------------------------------*/
 static int UsbMainThread( SceSize size, void *argp );
 extern void DisplayEnable( void );
+extern void hookCtrlSetData( u32 PreData, u32 NowData, u32 Analog );
+extern u32 PreButton;
 
 /*------------------------------------------------------------------------------*/
 /* USB driver define															*/
@@ -89,6 +91,8 @@ static int UsbAttach( int speed, void *arg2, void *arg3 )
 static int UsbDetach( int arg1, int arg2, int arg3 )
 {
 	DisplayEnable();
+	hookCtrlSetData(PreButton, 0, 0x80808080);
+	PreButton = 0;
 	sceKernelSetEventFlag( UsbMainEventFlag, USB_EVENT_DETACH );
 	return( 0 );
 }
