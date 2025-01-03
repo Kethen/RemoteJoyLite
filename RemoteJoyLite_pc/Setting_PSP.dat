@@ -26,6 +26,8 @@ static CW_DATA CWD_PSPRectYLst = { 202, 238,  30,  16, 624, CWD_NUMBER, FNT_NORM
 static CW_DATA CWD_PSPRectWLst = { 256, 238,  30,  16, 625, CWD_NUMBER, FNT_NORM, NumberBuff };
 static CW_DATA CWD_PSPRectHLst = { 298, 238,  30,  16, 626, CWD_NUMBER, FNT_NORM, NumberBuff };
 static CW_DATA CWD_PSPDbgChk   = {  20, 270, 230,  15, 650, CWD_CHECK,  FNT_NORM, L"デバックモード" };
+// need help translating this
+static CW_DATA CWD_PSPInputOverrideChk   = {  20, 295, 230,  15, 651, CWD_CHECK,  FNT_NORM, L"Override PSP input" };
 #elif (LANGUAGE==LANG_EN)
 static WCHAR NumberBuff[16];
 static CW_DATA CWD_PSPModeTxt = {  20,  40, 190,  21, 600, CWD_TEXT,  FNT_NORM, L"Transfer type" };
@@ -50,4 +52,5 @@ static CW_DATA CWD_PSPRectYLst = { 202, 238,  30,  16, 624, CWD_NUMBER, FNT_NORM
 static CW_DATA CWD_PSPRectWLst = { 256, 238,  30,  16, 625, CWD_NUMBER, FNT_NORM, NumberBuff };
 static CW_DATA CWD_PSPRectHLst = { 298, 238,  30,  16, 626, CWD_NUMBER, FNT_NORM, NumberBuff };
 static CW_DATA CWD_PSPDbgChk   = {  20, 270, 230,  15, 650, CWD_CHECK,  FNT_NORM, L"Debug mode" };
+static CW_DATA CWD_PSPInputOverrideChk   = {  20, 295, 230,  15, 651, CWD_CHECK,  FNT_NORM, L"Override PSP input" };
 #endif

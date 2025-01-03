@@ -80,6 +80,7 @@ typedef struct {
 
 	// post 019 additions
 	int				JoyAnalogR;
+	int				PSPInputOverride;
 } SETTING_DATA;
 
 /*------------------------------------------------------------------------------*/
