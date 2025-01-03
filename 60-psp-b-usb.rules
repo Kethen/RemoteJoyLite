@@ -1,2 +1,0 @@
-# /dev/uinput
-SUBSYSTEM=="usb", ATTRS{idVendor}=="054c", ATTRS{idProduct}=="01c9", MODE="0660", TAG+="uaccess"

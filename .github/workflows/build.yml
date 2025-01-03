@@ -71,14 +71,20 @@ jobs:
         make clean
         cd ..
 
-    - name: Arrage linux packaging
+    - name: Arrange linux packaging
       run: |
         cp -r x86 x86_linux
         cp -r x64 x64_linux
         cp linux_libusb/x86/libusb0.dll.so x86_linux/libusb0.dll
         cp linux_libusb/x64/libusb0.dll.so x64_linux/libusb0.dll
-        cp 60-psp-b-usb.rules x86_linux
-        cp 60-psp-b-usb.rules x64-linux
+        cp linux_scripts/start_linux.sh x86_linux/start_linux_JA.sh
+        cp linux_scripts/start_linux.sh x86_linux/start_linux_EN.sh
+        cp linux_scripts/start_linux.sh x64_linux/start_linux_JA.sh
+        cp linux_scripts/start_linux.sh x64_linux/start_linux_EN.sh
+        cp linux_scripts/60-psp-b-usb.rules x86_linux/60-psp-b-usb.rules
+        cp linux_scripts/60-psp-b-usb.rules x64_linux/60-psp-b-usb.rules
+        cp dxvk-2.5.2/x32/d3d9.dll x86_linux/d3d9.dll
+        cp dxvk-2.5.2/x64/d3d9.dll x64_linux/d3d9.dll
 
     - name: Push package artifact
       uses: actions/upload-artifact@v3
@@ -99,5 +105,11 @@ jobs:
           x64_linux/libusb0.dll
           x86_linux/60-psp-b-usb.rules
           x64_linux/60-psp-b-usb.rules
+          x86_linux/start_linux_JA.sh
+          x86_linux/start_linux_EN.sh
+          x64_linux/start_linux_JA.sh
+          x64_linux/start_linux_EN.sh
+          x86_linux/d3d9.dll
+          x86_linux/d3d9.dll
           psp/RemoteJoyLite.prx
         if-no-files-found: error
