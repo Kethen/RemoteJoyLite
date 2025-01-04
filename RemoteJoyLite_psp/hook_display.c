@@ -72,6 +72,7 @@ static int MyDisplayWaitVblankStartCB( void )
 /*------------------------------------------------------------------------------*/
 /* hookDisplay																	*/
 /*------------------------------------------------------------------------------*/
+#if 0
 void hookDisplay( void )
 {
 	SceModule *module = sceKernelFindModuleByName( "sceDisplay_Service" );
@@ -106,4 +107,13 @@ void hookDisplay( void )
 		void *hook_addr = HookSyscallAddress( sceDisplayWaitVblankStartCB_Func );
 		HookFuncSetting( hook_addr, MyDisplayWaitVblankStartCB );
 	}
+}
+#endif
+
+void hookDisplay(){
+	HIJACK_SYSCALL_STUB(sceDisplaySetFrameBuf, MyDisplaySetFrameBuf, sceDisplaySetFrameBuf_Func);
+	HIJACK_SYSCALL_STUB(sceDisplayWaitVblank, MyDisplayWaitVblank, sceDisplayWaitVblank_Func);
+	HIJACK_SYSCALL_STUB(sceDisplayWaitVblankCB, MyDisplayWaitVblankCB, sceDisplayWaitVblankCB_Func);
+	HIJACK_SYSCALL_STUB(sceDisplayWaitVblankStart, MyDisplayWaitVblankStart, sceDisplayWaitVblankStart_Func);
+	HIJACK_SYSCALL_STUB(sceDisplayWaitVblankStartCB, MyDisplayWaitVblankStartCB, sceDisplayWaitVblankStartCB_Func);
 }

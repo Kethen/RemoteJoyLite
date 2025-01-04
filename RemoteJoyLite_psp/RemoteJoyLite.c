@@ -19,7 +19,6 @@
 #include "kmode.h"
 #include "debug.h"
 
-SceModule *vsh = NULL;
 SceModule *pops = NULL;
 
 /*------------------------------------------------------------------------------*/
@@ -238,12 +237,10 @@ static void DoJoyCmd( unsigned int value1, unsigned int value2 )
 	else							 { DisplayEnable();  }
 	if ( value1 & SCREEN_CMD_DEBUG  ){ DebugMode = 1;    }
 	else							 { DebugMode = 0;    }
-	if(!vsh){
-		if( value1 & SCREEN_CMD_ASYNC || vsh ){
-			TranceAsyncOn();
-		}else{
-			TranceAsyncOff();
-		}
+	if( value1 & SCREEN_CMD_ASYNC ){
+		TranceAsyncOn();
+	}else{
+		TranceAsyncOff();
 	}
 	TranceMode = SCREEN_CMD_GET_TRNSMODE(value1);
 	TranceFPS  = SCREEN_CMD_GET_TRNSFPS(value1);
@@ -336,11 +333,6 @@ static int MainThread( SceSize args, void *argp )
 	sceKernelIcacheInvalidateAll();
 
 	pops = sceKernelFindModuleByName("scePops_Manager");
-	vsh = sceKernelFindModuleByName("vsh_module");
-
-	if(vsh){
-		TranceAsyncOn();
-	}
 
 	UsbAsyncFlush();
 	if ( UsbWait() != 0 ){ return( 0 ); }

@@ -72,6 +72,7 @@ static int MyKernelRegisterSubIntrHandler( int intno, int no, void *handler, voi
 /*------------------------------------------------------------------------------*/
 /* hookInterrupt																*/
 /*------------------------------------------------------------------------------*/
+#if 0
 void hookInterrupt( void )
 {
 	SceModule *module = sceKernelFindModuleByName( "sceInterruptManager" );
@@ -82,4 +83,9 @@ void hookInterrupt( void )
 		void *hook_addr = HookSyscallAddress( sceKernelRegisterSubIntrHandler_Func );
 		HookFuncSetting( hook_addr, MyKernelRegisterSubIntrHandler );
 	}
+}
+#endif
+
+void hookInterrupt( void ){
+	HIJACK_SYSCALL_STUB(sceKernelRegisterSubIntrHandler, MyKernelRegisterSubIntrHandler, sceKernelRegisterSubIntrHandler_Func);
 }
