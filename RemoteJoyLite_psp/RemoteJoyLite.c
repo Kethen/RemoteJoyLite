@@ -309,9 +309,6 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 /*------------------------------------------------------------------------------*/
 static int MainThread( SceSize args, void *argp )
 {
-	EARLY_LOG("%s: hooking usb\n", __func__);
-	hookUsbFunc();
-
 	// don't usb yet
 	sceKernelDelayThread(1000000 * 3);
 
@@ -390,6 +387,9 @@ int module_start( SceSize args, void *argp )
 	early_log_init();
 	EARLY_LOG("%s: begin\n", __func__);
 	#endif
+
+	EARLY_LOG("%s: hooking usb\n", __func__);
+	hookUsbFunc();
 
 	if ( sceKernelDevkitVersion() >= 0x01050001 ){
 		u32 *p = (u32 *)sceKernelSetDdrMemoryProtection;
