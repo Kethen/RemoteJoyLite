@@ -23,8 +23,6 @@ int (*sceUsbStop_Func)( const char *, int, void * ) = NULL;
 /*------------------------------------------------------------------------------*/
 static int MyUsbStart( const char *name, int args, void *argp )
 {
-	#if 0
-
 	// black list all drivers except for the storage driver
 	if(strcmp(name, "USBStor_Driver") == 0){
 		#ifndef RELEASE
@@ -37,15 +35,6 @@ static int MyUsbStart( const char *name, int args, void *argp )
 	debug_printf("%s: usb driver %s not whitelisted\n", __func__, name);
 	#endif
 	return -1;
-
-	#else
-
-	#ifndef RELEASE
-	debug_printf("%s: usb driver %s wants to start but blocked\n", __func__, name);
-	#endif
-	return -1;
-
-	#endif
 }
 
 /*------------------------------------------------------------------------------*/
@@ -57,19 +46,11 @@ static int MyUsbStop( const char *name, int args, void *argp )
 	debug_printf("%s: usb driver %s\n", __func__, name);
 	#endif
 
-	#if 0
+	int ret = sceUsbStop_Func(name, args, argp);
 	if(strcmp(name, "USBStor_Driver") == 0){
 		UsbResume();
 	}
-
-	return sceUsbStop_Func(name, args, argp);
-
-	#else
-
-	UsbResume();
-	return -1;
-
-	#endif
+	return ret;
 }
 
 /*------------------------------------------------------------------------------*/
