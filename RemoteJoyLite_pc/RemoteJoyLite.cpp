@@ -258,10 +258,16 @@ static void UsbOpenDevice( void )
 				if ( dev->descriptor.idProduct != HOSTFSDRIVER_PID ){ continue; }
 				UsbDev = usb_open( dev );
 				if ( UsbDev == NULL ){ continue; }
-				if ( usb_set_configuration( UsbDev, 1 ) == 0 ){
-					if ( usb_claim_interface( UsbDev, 0 ) == 0 ){ return; }else{ printf("%s: failed to claim interface\n", __func__); }
+				int ret = usb_set_configuration( UsbDev, 1 );
+				if(ret == 0){
+					ret = usb_claim_interface( UsbDev, 0 );
+					if (ret == 0){
+						return;
+					}else{
+						printf("%s: failed to claim interface, %d\n", __func__, ret);
+					}
 				}else{
-					printf("%s: failed to set config\n", __func__);
+					printf("%s: failed to set config, %d\n", __func__, ret);
 				}
 				usb_close( UsbDev );
 				UsbDev = NULL;

@@ -19,6 +19,9 @@
 #include "kmode.h"
 #include "debug.h"
 
+SceModule *vsh = NULL;
+SceModule *pops = NULL;
+
 /*------------------------------------------------------------------------------*/
 /* module info																	*/
 /*------------------------------------------------------------------------------*/
@@ -235,8 +238,13 @@ static void DoJoyCmd( unsigned int value1, unsigned int value2 )
 	else							 { DisplayEnable();  }
 	if ( value1 & SCREEN_CMD_DEBUG  ){ DebugMode = 1;    }
 	else							 { DebugMode = 0;    }
-	if ( value1 & SCREEN_CMD_ASYNC  ){ TranceAsyncOn();  }
-	else							 { TranceAsyncOff(); }
+	if(!vsh){
+		if( value1 & SCREEN_CMD_ASYNC || vsh ){
+			TranceAsyncOn();
+		}else{
+			TranceAsyncOff();
+		}
+	}
 	TranceMode = SCREEN_CMD_GET_TRNSMODE(value1);
 	TranceFPS  = SCREEN_CMD_GET_TRNSFPS(value1);
 
@@ -289,7 +297,9 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 
 	unsigned int trig = (NowButton & ~PreButton) & NowButton;
 	if ( trig & PSP_CTRL_HOME ){
-		sceImposeHomeButton(sceImposeGetStatus() & 1);
+		if(!pops){
+			sceImposeHomeButton(sceImposeGetStatus() & 1);
+		}
 	}
 	PreButton = NowButton;
 }
@@ -299,18 +309,31 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 /*------------------------------------------------------------------------------*/
 static int MainThread( SceSize args, void *argp )
 {
+	hookUsbFunc();
+
 	// don't usb yet
 	sceKernelDelayThread(1000000 * 3);
 
-	if ( UsbStart() != 0 ){ return( 0 ); }
-
 	hookInterrupt();
-	hookUsbFunc();
 	hookCtrlBuffer();
 	hookCtrlLatch();
 
+	UsbbdRegister();
+	if ( UsbStart() != 0 ){ return( 0 ); }
+
+	// really really clean the usb state
+	UsbSuspend();
+	UsbResume();
+
 	sceKernelDcacheWritebackInvalidateAll();
 	sceKernelIcacheInvalidateAll();
+
+	pops = sceKernelFindModuleByName("scePops_Manager");
+	vsh = sceKernelFindModuleByName("vsh_module");
+
+	if(vsh){
+		TranceAsyncOn();
+	}
 
 	UsbAsyncFlush();
 	if ( UsbWait() != 0 ){ return( 0 ); }
@@ -363,8 +386,6 @@ int module_start( SceSize args, void *argp )
 		sceKernelDcacheWritebackInvalidateRange( (void *)addr, 8 );
 		sceKernelIcacheInvalidateRange( (void *)addr, 8 );
 	}
-
-	UsbbdRegister();
 
 	MainThreadID = sceKernelCreateThread( "RemoteJoyLite", MainThread, 16, 0x800, 0, NULL );
 	if ( MainThreadID >= 0 ){ sceKernelStartThread( MainThreadID, args, argp ); }

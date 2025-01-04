@@ -10,6 +10,9 @@
 #include "Descriptor.h"
 #include "usb.h"
 #include "kmode.h"
+#include "hook_usb.h"
+
+static int usb_started = 0;
 
 /*------------------------------------------------------------------------------*/
 /* prototype																	*/
@@ -145,6 +148,9 @@ static int UsbStartFunc( int size, void *p )
 	UsbMainThreadID = sceKernelCreateThread( "USBMainThread", UsbMainThread, 10, 0x10000, 0, NULL );
 	if ( UsbMainThreadID < 0 ){ return( -1 ); }
 	sceKernelStartThread( UsbMainThreadID, 0, NULL );
+
+	usb_started = 1;
+
 	return( 0 );
 }
 
@@ -555,9 +561,9 @@ int UsbStart( void )
 {
 	int ret;
 
-	ret = sceUsbStart( PSP_USBBUS_DRIVERNAME, 0, 0 );
+	ret = sceUsbStart_Func( PSP_USBBUS_DRIVERNAME, 0, 0 );
 	if ( ret != 0 ){ return( -1 ); }
-	ret = sceUsbStart( RJLITE_DRIVERNAME, 0, 0 );
+	ret = sceUsbStart_Func( RJLITE_DRIVERNAME, 0, 0 );
 	if ( ret != 0 ){ return( -1 ); }
 	ret = sceUsbActivate( RJLITE_DRIVERPID );
 	if ( ret != 0 ){ return( -1 ); }
@@ -573,9 +579,9 @@ int UsbStop( void )
 
 	ret = sceUsbDeactivate( RJLITE_DRIVERPID );
 	if ( ret != 0 ){ return( -1 ); }
-	ret = sceUsbStop( RJLITE_DRIVERNAME, 0, 0 );
+	ret = sceUsbStop_Func( RJLITE_DRIVERNAME, 0, 0 );
 	if ( ret != 0 ){ return( -1 ); }
-	ret = sceUsbStop( PSP_USBBUS_DRIVERNAME, 0, 0 );
+	ret = sceUsbStop_Func( PSP_USBBUS_DRIVERNAME, 0, 0 );
 	if ( ret != 0 ){ return( -1 ); }
 	return( 0 );
 }
@@ -599,6 +605,10 @@ int UsbSuspend( void )
 {
 	int ret;
 
+	if(!usb_started){
+		return -1;
+	}
+
 	ret = sceUsbDeactivate( RJLITE_DRIVERPID );
 	if ( ret != 0 ){ return( -1 ); }
 	return( 0 );
@@ -610,6 +620,10 @@ int UsbSuspend( void )
 int UsbWait( void )
 {
 	int ret;
+
+	if(!usb_started){
+		return -1;
+	}
 
 	while ( UsbMainEventFlag < 0 ){ sceKernelDelayThread( 100000 ); }
 	ret = sceKernelWaitEventFlag( UsbMainEventFlag, USB_EVENT_CONNECT,

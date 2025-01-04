@@ -7,37 +7,75 @@
 #include <string.h>
 #include "debug.h"
 #include "usb.h"
+#define IS_SELF
+#include "hook_usb.h"
+#undef IS_SELF
 #include "hook.h"
 
 /*------------------------------------------------------------------------------*/
 /* work																			*/
 /*------------------------------------------------------------------------------*/
-static int (*sceUsbStart_Func)( const char *, unsigned int, void * ) = NULL;
-static int (*sceUsbStop_Func)( const char *, unsigned int, void * ) = NULL;
+int (*sceUsbStart_Func)( const char *, int, void * ) = NULL;
+int (*sceUsbStop_Func)( const char *, int, void * ) = NULL;
 
 /*------------------------------------------------------------------------------*/
 /* MyUsbStart																	*/
 /*------------------------------------------------------------------------------*/
-static int MyUsbStart( const char *name, unsigned int args, void *argp )
+static int MyUsbStart( const char *name, int args, void *argp )
 {
-	if ( strcmp( name, "USBStor_Driver" ) == 0 ){ UsbSuspend(); }
-	int ret = sceUsbStart( name, args, argp );
-	return( ret );
+	#if 0
+
+	// black list all drivers except for the storage driver
+	if(strcmp(name, "USBStor_Driver") == 0){
+		#ifndef RELEASE
+		debug_printf("%s: usb driver %s whitelisted\n", __func__, name);
+		#endif
+		UsbSuspend();
+		return sceUsbStart_Func(name, args, argp);
+	}
+	#ifndef RELEASE
+	debug_printf("%s: usb driver %s not whitelisted\n", __func__, name);
+	#endif
+	return -1;
+
+	#else
+
+	#ifndef RELEASE
+	debug_printf("%s: usb driver %s wants to start but blocked\n", __func__, name);
+	#endif
+	return -1;
+
+	#endif
 }
 
 /*------------------------------------------------------------------------------*/
 /* MyUsbStop																	*/
 /*------------------------------------------------------------------------------*/
-static int MyUsbStop( const char *name, unsigned int args, void *argp )
+static int MyUsbStop( const char *name, int args, void *argp )
 {
-	int ret = sceUsbStop( name, args, argp );
-	if ( strcmp( name, "USBStor_Driver" ) == 0 ){ UsbResume(); }
-	return( ret );
+	#ifndef RELEASE
+	debug_printf("%s: usb driver %s\n", __func__, name);
+	#endif
+
+	#if 0
+	if(strcmp(name, "USBStor_Driver") == 0){
+		UsbResume();
+	}
+
+	return sceUsbStop_Func(name, args, argp);
+
+	#else
+
+	UsbResume();
+	return -1;
+
+	#endif
 }
 
 /*------------------------------------------------------------------------------*/
 /* hookUsbFunc																	*/
 /*------------------------------------------------------------------------------*/
+#if 0
 void hookUsbFunc( void )
 {
 	SceModule *module = sceKernelFindModuleByName( "sceUSB_Driver" );
@@ -54,4 +92,10 @@ void hookUsbFunc( void )
 		void *hook_addr = HookSyscallAddress( sceUsbStop_Func );
 		HookFuncSetting( hook_addr, MyUsbStop );
 	}
+}
+#endif
+
+void hookUsbFunc(){
+	HIJACK_SYSCALL_STUB(sceUsbStart, MyUsbStart, sceUsbStart_Func);
+	HIJACK_SYSCALL_STUB(sceUsbStop, MyUsbStop, sceUsbStop_Func);
 }
