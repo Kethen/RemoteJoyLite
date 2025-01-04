@@ -18,6 +18,7 @@ static int UsbMainThread( SceSize size, void *argp );
 extern void DisplayEnable( void );
 extern void hookCtrlSetData( u32 PreData, u32 NowData, u32 Analog );
 extern u32 PreButton;
+extern int DebugMode;
 
 /*------------------------------------------------------------------------------*/
 /* USB driver define															*/
@@ -372,12 +373,16 @@ static int UsbWriteLargeData( const void *data, int data_size )
 	if ( (u32)data & 0x3F ){ return( -1 ); }
 	SetUsbBulkinReq( (char *)data, data_size );
 #ifndef RELEASE
-	HcountUsbWaitTop = sceDisplayGetAccumulatedHcount();
+	if(DebugMode){
+		HcountUsbWaitTop = sceDisplayGetAccumulatedHcount();
+	}
 #endif
 	ret = sceKernelWaitEventFlag( UsbTransEventFlag, USB_TRANSEVENT_BULKIN_DONE,
 								  PSP_EVENT_WAITOR | PSP_EVENT_WAITCLEAR, &result, NULL );
 #ifndef RELEASE
-	HcountUsbWaitSub = sceDisplayGetAccumulatedHcount() - HcountUsbWaitTop;
+	if(DebugMode){
+		HcountUsbWaitSub = sceDisplayGetAccumulatedHcount() - HcountUsbWaitTop;
+	}
 #endif
 	if ( ret == 0 ){
 		if ( (UsbBulkinReq.retcode == 0) && (UsbBulkinReq.recvsize > 0) ){

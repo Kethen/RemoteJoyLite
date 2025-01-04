@@ -72,7 +72,7 @@ extern int GetHcountUsbWait();
 #endif
 static int TranceMode  = 0;
 static int TranceFPS   = 0;
-static int DebugMode   = 0;
+int DebugMode   = 0;
 static int ScreenReady = 0;
 static int LineFlag = 0;
 static void *ScreenBuff = NULL;
@@ -204,11 +204,15 @@ static int ScreenThread( SceSize args, void *argp )
 		if ( (result & 1) || (ret == SCE_KERNEL_ERROR_WAIT_TIMEOUT) ){
 			_sw( 0xFFFFFFFF, 0xBC00000C );
 #ifndef RELEASE
-			HcountMkFrameTop = sceDisplayGetAccumulatedHcount();
+			if(DebugMode){
+				HcountMkFrameTop = sceDisplayGetAccumulatedHcount();
+			}
 #endif
 			BuildFrame();
 #ifndef RELEASE
-			HcountMkFrameSub = sceDisplayGetAccumulatedHcount() - HcountMkFrameTop;
+			if(DebugMode){
+				HcountMkFrameSub = sceDisplayGetAccumulatedHcount() - HcountMkFrameTop;
+			}
 #endif
 			if ( ret != SCE_KERNEL_ERROR_WAIT_TIMEOUT ){
 				sceKernelSignalSema( ScreenSemaphore, 1 );
