@@ -309,19 +309,29 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 /*------------------------------------------------------------------------------*/
 static int MainThread( SceSize args, void *argp )
 {
+	EARLY_LOG("%s: hooking usb\n", __func__);
 	hookUsbFunc();
 
 	// don't usb yet
 	sceKernelDelayThread(1000000 * 3);
 
+	EARLY_LOG("%s: hooking interrupt\n", __func__);
 	hookInterrupt();
+	EARLY_LOG("%s: hooking ctrl buffer functions\n", __func__);
 	hookCtrlBuffer();
+	EARLY_LOG("%s: hooking ctrl latch functions\n", __func__);
 	hookCtrlLatch();
 
+	EARLY_LOG("%s: registering usb driver\n", __func__);
 	UsbbdRegister();
-	if ( UsbStart() != 0 ){ return( 0 ); }
+	EARLY_LOG("%s: starting usb\n", __func__);
+	if(UsbStart() != 0){
+		EARLY_LOG("%s: failed starting usb\n", __func__);
+		return 0;
+	}
 
 	// really really clean the usb state
+	EARLY_LOG("%s: rebooting usb\n", __func__);
 	UsbSuspend();
 	UsbResume();
 
@@ -374,10 +384,13 @@ static int MainThread( SceSize args, void *argp )
 /*------------------------------------------------------------------------------*/
 /* module_start																	*/
 /*------------------------------------------------------------------------------*/
-#define GET_JUMP_TARGET(x)		(0x80000000|(((x)&0x03FFFFFF)<<2))
-
 int module_start( SceSize args, void *argp )
 {
+	#ifndef RELEASE
+	early_log_init();
+	EARLY_LOG("%s: begin\n", __func__);
+	#endif
+
 	if ( sceKernelDevkitVersion() >= 0x01050001 ){
 		u32 *p = (u32 *)sceKernelSetDdrMemoryProtection;
 		u32 addr = GET_JUMP_TARGET( *p );

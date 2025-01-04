@@ -8,6 +8,10 @@
 #include "debug.h"
 #undef IS_SELF
 
+#include <pspiofilemgr.h>
+
+int early_log_fd = -1;
+
 #ifndef RELEASE
 /*------------------------------------------------------------------------------*/
 /* work																			*/
@@ -32,3 +36,7 @@ void DebugTrance( int flag )
 	}
 }
 #endif
+
+void early_log_init(){
+	early_log_fd = sceIoOpen(LOG_PATH, PSP_O_TRUNC | PSP_O_CREAT | PSP_O_WRONLY, 00777);
+}
