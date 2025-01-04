@@ -133,12 +133,14 @@ static void MainSync( HWND hWnd )
 static void ChangeZoomMax( HWND hWnd )
 {
 	static RECT PrevRect;
+	HWND topmost = SettingData.DispTop ? HWND_TOPMOST : HWND_NOTOPMOST;
+
 	if ( FullScreen == 0 ){
 		GetWindowRect( hWnd, &PrevRect );
 		int w = GetSystemMetrics(SM_CXSCREEN);
 		int h = GetSystemMetrics(SM_CYSCREEN);
-		SetWindowLong( hWnd, GWL_STYLE, WS_POPUP );
-		SetWindowPos( hWnd, HWND_TOPMOST, 0, 0, w, h, SWP_SHOWWINDOW );
+		SetWindowLong( hWnd, GWL_STYLE, WS_OVERLAPPED );
+		SetWindowPos( hWnd, topmost, 0, 0, w, h, SWP_SHOWWINDOW );
 		FullScreen = 1;
 	} else {
 		int x = PrevRect.left;
@@ -148,14 +150,10 @@ static void ChangeZoomMax( HWND hWnd )
 		if ( StyleFlag == 0 ){
 			SetWindowLong( hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW );
 		} else {
-			SetWindowLong( hWnd, GWL_STYLE, WS_POPUP );
+			SetWindowLong( hWnd, GWL_STYLE, WS_OVERLAPPED );
 		}
 		SetWindowPos( hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW );
-		if ( SettingData.DispTop == 0 ){
-			SetWindowPos( hWnd, HWND_NOTOPMOST, x, y, w, h, 0 );
-		} else {
-			SetWindowPos( hWnd, HWND_TOPMOST, x, y, w, h, 0 );
-		}
+		SetWindowPos( hWnd, topmost, x, y, w, h, 0 );
 		ShowWindow( hWnd, SW_SHOWNORMAL );
 		FullScreen = 0;
 	}
@@ -199,12 +197,12 @@ static void ChangeWindowStyle( HWND hWnd )
 		RECT NowRect, ChgRect;
 		GetWindowRect( hWnd, &NowRect );
 		GetClientRect( hWnd, &ChgRect );
-		AdjustWindowRect( &ChgRect, WS_POPUP, FALSE );
+		AdjustWindowRect( &ChgRect, WS_OVERLAPPED, FALSE );
 		int w = ChgRect.right - ChgRect.left;
 		int h = ChgRect.bottom - ChgRect.top;
 		int x = NowRect.left + GetSystemMetrics( SM_CXSIZEFRAME );
 		int y = NowRect.top  + GetSystemMetrics( SM_CYSIZEFRAME ) + GetSystemMetrics( SM_CYCAPTION );
-		SetWindowLong( hWnd, GWL_STYLE, WS_POPUP );
+		SetWindowLong( hWnd, GWL_STYLE, WS_OVERLAPPED );
 		SetWindowPos( hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW );
 		if ( SettingData.DispTop == 0 ){
 			SetWindowPos( hWnd, HWND_NOTOPMOST, x, y, w, h, SWP_SHOWWINDOW );

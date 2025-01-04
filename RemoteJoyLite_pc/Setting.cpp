@@ -395,7 +395,7 @@ static LRESULT CALLBACK WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
 		break;
 	case WM_CLOSE:
 		EnableWindow( hWndParent, TRUE );
-		BringWindowToTop( hWndParent );
+		//BringWindowToTop( hWndParent );
 		MacroLoad();
 		RemoteJoyLite_SendPSPCmd();
 		DispFlag = FALSE;
