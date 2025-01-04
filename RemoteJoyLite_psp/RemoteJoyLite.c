@@ -10,6 +10,7 @@
 #include <pspdisplay_kernel.h>
 #include <psputilsforkernel.h>
 #include <pspsysmem_kernel.h>
+#include <pspimpose_driver.h>
 #include <string.h>
 #include <stdio.h>
 #include "../remotejoy.h"
@@ -283,7 +284,9 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 	pspSdkEnableInterrupts( intc );
 
 	unsigned int trig = (NowButton & ~PreButton) & NowButton;
-	if ( trig & PSP_CTRL_HOME ){ hookImposeHomeButton(); }
+	if ( trig & PSP_CTRL_HOME ){
+		sceImposeHomeButton(sceImposeGetStatus() & 1);
+	}
 	PreButton = NowButton;
 }
 

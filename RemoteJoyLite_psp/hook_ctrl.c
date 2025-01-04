@@ -2,7 +2,6 @@
 /* hook_ctrl																	*/
 /*------------------------------------------------------------------------------*/
 #include <pspkernel.h>
-#include <pspsdk.h>
 #include <pspctrl.h>
 #include <pspctrl_kernel.h>
 #include <string.h>
@@ -285,26 +284,6 @@ static int sceCtrlReadBufferNegativePatched(SceCtrlData *pad_data, int count){
 	int ret = sceCtrlReadBufferNegativeOrig(pad_data, count);
 	AddValues(pad_data, ret, 1);
 	return ret;
-}
-
-#define MAKE_JUMP(a, f) _sw(0x08000000 | (((u32)(f) & 0x0FFFFFFC) >> 2), a);
-#define GET_JUMP_TARGET(x) (0x80000000 | (((x) & 0x03FFFFFF) << 2))
-
-#define HIJACK_SYSCALL_STUB(a, f, ptr) { \
-	u32 _func_ = (u32)a; \
-	_func_ = GET_JUMP_TARGET(_lw(_func_)); \
-	u32 _ff = (u32)f; \
-	int _interrupts = pspSdkDisableInterrupts(); \
-	static u32 trampoline[3]; \
-	_sw(_lw(_func_), (u32)trampoline); \
-	_sw(_lw(_func_ + 4), (u32)trampoline + 8); \
-	MAKE_JUMP((u32)trampoline + 4, _func_ + 8); \
-	MAKE_JUMP(_func_, _ff); \
-	_sw(0, _func_ + 4); \
-	_sw((u32)trampoline, (u32)&ptr); \
-	sceKernelDcacheWritebackInvalidateAll(); \
-	sceKernelIcacheClearAll(); \
-	pspSdkEnableInterrupts(_interrupts); \
 }
 
 void hookCtrlBuffer( void ){
