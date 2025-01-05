@@ -36,6 +36,9 @@ jobs:
         mkdir psp
         cd RemoteJoyLite_psp
         make
+        mv RemoteJoyLiteDebug.prx ../psp/RemoteJoyLiteDebug.prx
+        make clean
+        make RELEASE=1
         mv RemoteJoyLite.prx ../psp/RemoteJoyLite.prx
         cd ..
 
@@ -150,4 +153,5 @@ jobs:
           x64_linux/d3d9.dll
           aarch64_linux/d3d9.dll
           psp/RemoteJoyLite.prx
+          psp/RemoteJoyLiteDebug.prx
         if-no-files-found: error
