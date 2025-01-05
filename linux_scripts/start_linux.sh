@@ -21,4 +21,9 @@ then
 	EXE=RemoteJoyLite_${MODE}_64.exe
 fi
 
+if ! [ -e "$EXE" ]
+then
+	EXE=RemoteJoyLite_${MODE}_aarch64.exe
+fi
+
 wine "$EXE"

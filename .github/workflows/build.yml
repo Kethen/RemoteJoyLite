@@ -16,16 +16,20 @@ jobs:
       run: |
         echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
         echo "PSPDEV=${GITHUB_WORKSPACE}/pspdev" >> $GITHUB_ENV
-        echo "${GITHUB_WORKSPACE}/pspdev/bin" >> $GITHUB_PATH
+        echo "${GITHUB_WORKSPACE}/pspdev/bin:${GITHUB_WORKSPACE}/llvm-mingw-20241217-ucrt-ubuntu-20.04-x86_64/bin" >> $GITHUB_PATH
 
     - name: Install packages
       run: |
         sudo apt update
-        sudo apt install -y gcc-mingw-w64-x86-64 gcc-mingw-w64-i686 g++-mingw-w64-x86-64 g++-mingw-w64-i686 make
+        sudo apt install -y make xz-utils gcc
 
     - name: Download PSP SDK
       run: |
         curl -sL https://github.com/pspdev/pspdev/releases/download/v20240701/pspdev-ubuntu-latest-x86_64.tar.gz | tar xvz -C ./
+
+    - name: Download llvm-mingw-w64
+      run: |
+        curl -sL https://github.com/mstorsjo/llvm-mingw/releases/download/20241217/llvm-mingw-20241217-ucrt-ubuntu-20.04-x86_64.tar.xz | xz -d | tar -C ./ -xv
 
     - name: Build PSP
       run: |
@@ -71,20 +75,44 @@ jobs:
         make clean
         cd ..
 
+    - name: Build PC aarch64 JA
+      run: |
+        mkdir aarch64
+        cd RemoteJoyLite_pc
+        make ARCH=aarch64 CPPC=aarch64-w64-mingw32-g++ WINDRES=aarch64-w64-mingw32-windres LANGUAGE=LANG_JA
+        mv RemoteJoyLite.exe ../aarch64/RemoteJoyLite_JA_aarch64.exe
+        cp libusb0_aarch64.dll ../aarch64/libusb0.dll
+        make clean
+        cd ..
+
+    - name: Build PC aarch64 EN
+      run: |
+        cd RemoteJoyLite_pc
+        make ARCH=aarch64 CPPC=aarch64-w64-mingw32-g++ WINDRES=aarch64-w64-mingw32-windres LANGUAGE=LANG_EN
+        mv RemoteJoyLite.exe ../aarch64/RemoteJoyLite_EN_aarch64.exe
+        make clean
+        cd ..
+
     - name: Arrange linux packaging
       run: |
         cp -r x86 x86_linux
         cp -r x64 x64_linux
+        cp -r aarch64 aarch64_linux
         cp linux_libusb/x86/libusb0.dll.so x86_linux/libusb0.dll
         cp linux_libusb/x64/libusb0.dll.so x64_linux/libusb0.dll
+        cp linux_libusb/aarch64/libusb0.dll.so aarch64_linux/libusb0.dll
         cp linux_scripts/start_linux.sh x86_linux/start_linux_JA.sh
         cp linux_scripts/start_linux.sh x86_linux/start_linux_EN.sh
         cp linux_scripts/start_linux.sh x64_linux/start_linux_JA.sh
         cp linux_scripts/start_linux.sh x64_linux/start_linux_EN.sh
+        cp linux_scripts/start_linux.sh aarch64_linux/start_linux_JA.sh
+        cp linux_scripts/start_linux.sh aarch64_linux/start_linux_EN.sh
         cp linux_scripts/60-psp-b-usb.rules x86_linux/60-psp-b-usb.rules
         cp linux_scripts/60-psp-b-usb.rules x64_linux/60-psp-b-usb.rules
+        cp linux_scripts/60-psp-b-usb.rules aarch64_linux/60-psp-b-usb.rules
         cp dxvk-2.5.2/x32/d3d9.dll x86_linux/d3d9.dll
         cp dxvk-2.5.2/x64/d3d9.dll x64_linux/d3d9.dll
+        cp dxvk-2.5.2-aarch64/aarch64/d3d9.dll aarch64_linux/d3d9.dll
 
     - name: Push package artifact
       uses: actions/upload-artifact@v3
@@ -95,21 +123,31 @@ jobs:
           x86/RemoteJoyLite_EN_32.exe
           x64/RemoteJoyLite_JA_64.exe
           x64/RemoteJoyLite_EN_64.exe
+          aarch64/RemoteJoyLite_JA_aarch64.exe
+          aarch64/RemoteJoyLite_EN_aarch64.exe
           x86/libusb0.dll
           x64/libusb0.dll
+          aarch64/libusb0.dll
           x86_linux/RemoteJoyLite_JA_32.exe
           x86_linux/RemoteJoyLite_EN_32.exe
           x64_linux/RemoteJoyLite_JA_64.exe
           x64_linux/RemoteJoyLite_EN_64.exe
+          aarch64_linux/RemoteJoyLite_JA_aarch64.exe
+          aarch64_linux/RemoteJoyLite_EN_aarch64.exe
           x86_linux/libusb0.dll
           x64_linux/libusb0.dll
+          aarch64_linux/libusb0.dll
           x86_linux/60-psp-b-usb.rules
           x64_linux/60-psp-b-usb.rules
+          aarch64_linux/60-psp-b-usb.rules
           x86_linux/start_linux_JA.sh
           x86_linux/start_linux_EN.sh
           x64_linux/start_linux_JA.sh
           x64_linux/start_linux_EN.sh
+          aarch64_linux/start_linux_JA.sh
+          aarch64_linux/start_linux_EN.sh
           x86_linux/d3d9.dll
-          x86_linux/d3d9.dll
+          x64_linux/d3d9.dll
+          aarch64_linux/d3d9.dll
           psp/RemoteJoyLite.prx
         if-no-files-found: error

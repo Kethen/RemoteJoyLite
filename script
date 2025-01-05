@@ -4,6 +4,8 @@ rm -rf x86
 mkdir x86
 rm -rf x64
 mkdir x64
+rm -rf aarch64
+mkdir aarch64
 rm -rf psp
 mkdir psp
 
@@ -18,6 +20,8 @@ mkdir psp
 )
 
 (
+	export PATH=/llvm-mingw-20241217-ucrt-ubuntu-20.04-x86_64/bin:$PATH
+
 	cd RemoteJoyLite_pc
 	make clean
 	make -j$(nproc) ARCH=x86 CPPC=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres LANGUAGE=LANG_JA
@@ -34,6 +38,15 @@ mkdir psp
 	make -j$(nproc) ARCH=x64 CPPC=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres LANGUAGE=LANG_EN
 	mv RemoteJoyLite.exe ../x64/RemoteJoyLite_EN_64.exe
 	cp libusb0_x64.dll ../x64/libusb0.dll
+
+	make clean
+	make -j$(nproc) ARCH=aarch64 CPPC=aarch64-w64-mingw32-g++ WINDRES=aarch64-w64-mingw32-windres LANGUAGE=LANG_JA
+	mv RemoteJoyLite.exe ../aarch64/RemoteJoyLite_JA_aarch64.exe
+	make clean
+	make -j$(nproc) ARCH=aarch64 CPPC=aarch64-w64-mingw32-g++ WINDRES=aarch64-w64-mingw32-windres LANGUAGE=LANG_EN
+	mv RemoteJoyLite.exe ../aarch64/RemoteJoyLite_EN_aarch64.exe
+	cp libusb0_aarch64.dll ../aarch64/libusb0.dll
+
 	make clean
 )
 
@@ -42,16 +55,22 @@ rm -rf x64_linux
 
 cp -r x86 x86_linux
 cp -r x64 x64_linux
+cp -r aarch64 aarch64_linux
 cp -r linux_libusb/x86/libusb0.dll.so x86_linux/libusb0.dll
 cp -r linux_libusb/x64/libusb0.dll.so x64_linux/libusb0.dll
+cp -r linux_libusb/aarch64/libusb0.dll.so aarch64_linux/libusb0.dll
 
 cp linux_scripts/start_linux.sh x86_linux/start_linux_JA.sh
 cp linux_scripts/start_linux.sh x86_linux/start_linux_EN.sh
 cp linux_scripts/start_linux.sh x64_linux/start_linux_JA.sh
 cp linux_scripts/start_linux.sh x64_linux/start_linux_EN.sh
+cp linux_scripts/start_linux.sh aarch64_linux/start_linux_JA.sh
+cp linux_scripts/start_linux.sh aarch64_linux/start_linux_EN.sh
 
 cp linux_scripts/60-psp-b-usb.rules x86_linux/60-psp-b-usb.rules
 cp linux_scripts/60-psp-b-usb.rules x64_linux/60-psp-b-usb.rules
+cp linux_scripts/60-psp-b-usb.rules aarch64_linux/60-psp-b-usb.rules
 
 cp dxvk-2.5.2/x32/d3d9.dll x86_linux/d3d9.dll
 cp dxvk-2.5.2/x64/d3d9.dll x64_linux/d3d9.dll
+cp dxvk-2.5.2-aarch64/aarch64/d3d9.dll aarch64_linux/d3d9.dll
