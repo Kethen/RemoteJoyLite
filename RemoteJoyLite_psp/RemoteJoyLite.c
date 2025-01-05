@@ -168,8 +168,33 @@ static void BuildFrame( void )
 		newfmt |= flag;
 	}
 	if ( tmode == 4 ){
-		if ( orgfmt != 3 ){ size = 480*272*2; }
-		else			  { size = 480*272*4; }
+		int pixsize = 0;
+		if(orgfmt != 3){
+			pixsize = 2;
+		}else{
+			pixsize = 4;
+		}
+
+		#ifndef RELEASE
+		// dump in C for debugging
+
+		size = ScreenW * ScreenH * pixsize;
+		int src_line_offset = ScreenX * pixsize;
+		int dst_line_size = ScreenW * pixsize;
+		int src_line_size = pitch * pixsize;
+		src = (void *)((u32)src + ScreenY * pitch * pixsize);
+		for(int i = 0;i < ScreenH;i++){
+			memcpy(dst, (void *)((u32)src + src_line_offset), dst_line_size);
+			dst = (void *)((u32)dst + dst_line_size);
+			src = (void *)((u32)src + src_line_size);
+		}
+
+		#else
+
+		// transfer speed test
+		size = 480 * 272 * pixsize;
+
+		#endif
 	}
 
 	joy->magic = JOY_MAGIC;
