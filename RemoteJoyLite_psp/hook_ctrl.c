@@ -337,12 +337,13 @@ void hookCtrlBuffer( void ){
 
 	#else
 
-	/*
+	#if 1
 	HIJACK_SYSCALL_STUB(sceCtrlPeekBufferPositive, sceCtrlPeekBufferPositivePatched, sceCtrlPeekBufferPositiveOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlPeekBufferNegative, sceCtrlPeekBufferNegativePatched, sceCtrlPeekBufferNegativeOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferPositive, sceCtrlReadBufferPositivePatched, sceCtrlReadBufferPositiveOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
-	*/
+
+	#else
 
 	u32 CtrlPeekBufferPositive = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x3A622550);
 	EARLY_LOG("%s: CtrlPeekBufferPositive 0x%x\n", __func__, CtrlPeekBufferPositive);
@@ -359,13 +360,16 @@ void hookCtrlBuffer( void ){
 	HIJACK_FUNCTION(CtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
 
 	#endif
+
+	#endif
 }
 
 void hookCtrlLatch( void ){
-	/*
+	#if 1
 	HIJACK_SYSCALL_STUB(sceCtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
 	HIJACK_SYSCALL_STUB(sceCtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
-	*/
+
+	#else
 
 	u32 CtrlPeekLatch = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0xB1D0E5CD);
 	EARLY_LOG("%s: CtrlPeekLatch 0x%x\n", __func__, CtrlPeekLatch);
@@ -374,4 +378,6 @@ void hookCtrlLatch( void ){
 
 	HIJACK_FUNCTION(CtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
 	HIJACK_FUNCTION(CtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
+
+	#endif
 }
