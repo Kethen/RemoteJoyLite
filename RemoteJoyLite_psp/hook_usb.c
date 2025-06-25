@@ -77,6 +77,22 @@ void hookUsbFunc( void )
 #endif
 
 void hookUsbFunc(){
+	u32 UsbStart = GET_JUMP_TARGET(_lw((u32)sceUsbStart));
+	u32 UsbStop = GET_JUMP_TARGET(_lw((u32)sceUsbStop));
+
+	#define str(s) #s
+	#define LOG_IMPORT(n) { \
+		EARLY_LOG("%s: %s 0x%x\n", __func__, str(n), n); \
+	}
+
+	LOG_IMPORT(UsbStart);
+	LOG_IMPORT(UsbStop);
+
+	HIJACK_FUNCTION(UsbStart, MyUsbStart, sceUsbStart_Func);
+	HIJACK_FUNCTION(UsbStop, MyUsbStop, sceUsbStop_Func);
+
+	/*
 	HIJACK_SYSCALL_STUB(sceUsbStart, MyUsbStart, sceUsbStart_Func);
 	HIJACK_SYSCALL_STUB(sceUsbStop, MyUsbStop, sceUsbStop_Func);
+	*/
 }

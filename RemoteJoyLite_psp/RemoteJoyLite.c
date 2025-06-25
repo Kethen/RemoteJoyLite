@@ -214,8 +214,6 @@ static int ScreenThread( SceSize args, void *argp )
 	ScreenSemaphore = sceKernelCreateSema( "ScreenSema", 0, 1, 1, NULL );
 	if ( ScreenSemaphore < 0 ){ sceKernelExitDeleteThread( 0 ); }
 
-	hookDisplay();
-
 	BuildFrame();
 
 	while ( 1 ){
@@ -334,13 +332,6 @@ static int MainThread( SceSize args, void *argp )
 	// don't usb yet
 	sceKernelDelayThread(1000000 * 3);
 
-	EARLY_LOG("%s: hooking interrupt\n", __func__);
-	hookInterrupt();
-	EARLY_LOG("%s: hooking ctrl buffer functions\n", __func__);
-	hookCtrlBuffer();
-	EARLY_LOG("%s: hooking ctrl latch functions\n", __func__);
-	hookCtrlLatch();
-
 	EARLY_LOG("%s: registering usb driver\n", __func__);
 	UsbbdRegister();
 	EARLY_LOG("%s: starting usb\n", __func__);
@@ -408,6 +399,18 @@ int module_start( SceSize args, void *argp )
 
 	EARLY_LOG("%s: hooking usb\n", __func__);
 	hookUsbFunc();
+
+	EARLY_LOG("%s: hooking interrupt\n", __func__);
+	hookInterrupt();
+
+	EARLY_LOG("%s: hooking ctrl buffer functions\n", __func__);
+	hookCtrlBuffer();
+
+	EARLY_LOG("%s: hooking ctrl latch functions\n", __func__);
+	hookCtrlLatch();
+
+	EARLY_LOG("%s: hooking display functions\n", __func__);
+	hookDisplay();
 
 	if ( sceKernelDevkitVersion() >= 0x01050001 ){
 		u32 *p = (u32 *)sceKernelSetDdrMemoryProtection;

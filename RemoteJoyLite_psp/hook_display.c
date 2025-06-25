@@ -111,9 +111,33 @@ void hookDisplay( void )
 #endif
 
 void hookDisplay(){
+	u32 DisplaySetFrameBuf = GET_JUMP_TARGET(_lw((u32)sceDisplaySetFrameBuf));
+	u32 DisplayWaitVblank = GET_JUMP_TARGET(_lw((u32)sceDisplayWaitVblank));
+	u32 DisplayWaitVblankCB = GET_JUMP_TARGET(_lw((u32)sceDisplayWaitVblankCB));
+	u32 DisplayWaitVblankStart = GET_JUMP_TARGET(_lw((u32)sceDisplayWaitVblankStart));
+	u32 DisplayWaitVblankStartCB = GET_JUMP_TARGET(_lw((u32)sceDisplayWaitVblankStartCB));
+
+	#define str(s) #s
+	#define LOG_IMPORT(n) { \
+		EARLY_LOG("%s: %s 0x%x\n", __func__, str(n), n); \
+	}
+	LOG_IMPORT(DisplaySetFrameBuf);
+	LOG_IMPORT(DisplayWaitVblank);
+	LOG_IMPORT(DisplayWaitVblankCB);
+	LOG_IMPORT(DisplayWaitVblankStart);
+	LOG_IMPORT(DisplayWaitVblankStartCB);
+
+	HIJACK_FUNCTION(DisplaySetFrameBuf, MyDisplaySetFrameBuf, sceDisplaySetFrameBuf_Func);
+	HIJACK_FUNCTION(DisplayWaitVblank, MyDisplayWaitVblank, sceDisplayWaitVblank_Func);
+	HIJACK_FUNCTION(DisplayWaitVblankCB, MyDisplayWaitVblankCB, sceDisplayWaitVblankCB_Func);
+	HIJACK_FUNCTION(DisplayWaitVblankStart, MyDisplayWaitVblankStart, sceDisplayWaitVblankStart_Func);
+	HIJACK_FUNCTION(DisplayWaitVblankStartCB, MyDisplayWaitVblankStartCB, sceDisplayWaitVblankStartCB_Func);
+
+	/*
 	HIJACK_SYSCALL_STUB(sceDisplaySetFrameBuf, MyDisplaySetFrameBuf, sceDisplaySetFrameBuf_Func);
 	HIJACK_SYSCALL_STUB(sceDisplayWaitVblank, MyDisplayWaitVblank, sceDisplayWaitVblank_Func);
 	HIJACK_SYSCALL_STUB(sceDisplayWaitVblankCB, MyDisplayWaitVblankCB, sceDisplayWaitVblankCB_Func);
 	HIJACK_SYSCALL_STUB(sceDisplayWaitVblankStart, MyDisplayWaitVblankStart, sceDisplayWaitVblankStart_Func);
 	HIJACK_SYSCALL_STUB(sceDisplayWaitVblankStartCB, MyDisplayWaitVblankStartCB, sceDisplayWaitVblankStartCB_Func);
+	*/
 }

@@ -12,7 +12,7 @@
 /* define																		*/
 /*------------------------------------------------------------------------------*/
 #define ABS(x)				((x)<0?-x:x)
-#define GET_JUMP_TARGET(x)	(0x80000000|(((x)&0x03FFFFFF)<<2))
+//#define GET_JUMP_TARGET(x)	(0x80000000|(((x)&0x03FFFFFF)<<2))
 
 /*------------------------------------------------------------------------------*/
 /* work																			*/
@@ -338,10 +338,27 @@ void hookCtrlBuffer( void ){
 	#else
 
 	#if 1
+	u32 CtrlPeekBufferPositive = GET_JUMP_TARGET(_lw((u32)sceCtrlPeekBufferPositive));
+	u32 CtrlPeekBufferNegative = GET_JUMP_TARGET(_lw((u32)sceCtrlPeekBufferNegative));
+	u32 CtrlReadBufferPositive = GET_JUMP_TARGET(_lw((u32)sceCtrlReadBufferPositive));
+	u32 CtrlReadBufferNegative = GET_JUMP_TARGET(_lw((u32)sceCtrlReadBufferNegative));
+
+	EARLY_LOG("%s: CtrlPeekBufferPositive 0x%x\n", __func__, CtrlPeekBufferPositive);
+	EARLY_LOG("%s: CtrlPeekBufferNegative 0x%x\n", __func__, CtrlPeekBufferNegative);
+	EARLY_LOG("%s: CtrlReadBufferPositive 0x%x\n", __func__, CtrlReadBufferPositive);
+	EARLY_LOG("%s: CtrlReadBufferNegative 0x%x\n", __func__, CtrlReadBufferNegative);
+
+	HIJACK_FUNCTION(CtrlPeekBufferPositive, sceCtrlPeekBufferPositivePatched, sceCtrlPeekBufferPositiveOrig);
+	HIJACK_FUNCTION(CtrlPeekBufferNegative, sceCtrlPeekBufferNegativePatched, sceCtrlPeekBufferNegativeOrig);
+	HIJACK_FUNCTION(CtrlReadBufferPositive, sceCtrlReadBufferPositivePatched, sceCtrlReadBufferPositiveOrig);
+	HIJACK_FUNCTION(CtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
+
+	/*
 	HIJACK_SYSCALL_STUB(sceCtrlPeekBufferPositive, sceCtrlPeekBufferPositivePatched, sceCtrlPeekBufferPositiveOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlPeekBufferNegative, sceCtrlPeekBufferNegativePatched, sceCtrlPeekBufferNegativeOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferPositive, sceCtrlReadBufferPositivePatched, sceCtrlReadBufferPositiveOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
+	*/
 
 	#else
 
@@ -366,8 +383,19 @@ void hookCtrlBuffer( void ){
 
 void hookCtrlLatch( void ){
 	#if 1
+	u32 CtrlPeekLatch = GET_JUMP_TARGET(_lw((u32)sceCtrlPeekLatch));
+	u32 CtrlReadLatch = GET_JUMP_TARGET(_lw((u32)sceCtrlReadLatch));
+
+	EARLY_LOG("%s: CtrlPeekLatch 0x%x\n", __func__, CtrlPeekLatch);
+	EARLY_LOG("%s: CtrlReadLatch 0x%x\n", __func__, CtrlReadLatch);
+
+	HIJACK_FUNCTION(CtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
+	HIJACK_FUNCTION(CtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
+
+	/*
 	HIJACK_SYSCALL_STUB(sceCtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
 	HIJACK_SYSCALL_STUB(sceCtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
+	*/
 
 	#else
 

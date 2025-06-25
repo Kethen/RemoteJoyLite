@@ -87,5 +87,15 @@ void hookInterrupt( void )
 #endif
 
 void hookInterrupt( void ){
-	HIJACK_SYSCALL_STUB(sceKernelRegisterSubIntrHandler, MyKernelRegisterSubIntrHandler, sceKernelRegisterSubIntrHandler_Func);
+	u32 KernelRegisterSubIntrHandler = GET_JUMP_TARGET(_lw((u32)sceKernelRegisterSubIntrHandler));
+
+	#define str(s) #s
+	#define LOG_IMPORT(n) { \
+		EARLY_LOG("%s: %s 0x%x\n", __func__, str(n), n); \
+	}
+	LOG_IMPORT(KernelRegisterSubIntrHandler);
+
+	HIJACK_FUNCTION(KernelRegisterSubIntrHandler, MyKernelRegisterSubIntrHandler, sceKernelRegisterSubIntrHandler_Func);
+
+	//HIJACK_SYSCALL_STUB(sceKernelRegisterSubIntrHandler, MyKernelRegisterSubIntrHandler, sceKernelRegisterSubIntrHandler_Func);
 }
