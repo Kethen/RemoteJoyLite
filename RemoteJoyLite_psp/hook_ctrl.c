@@ -337,15 +337,35 @@ void hookCtrlBuffer( void ){
 
 	#else
 
+	/*
 	HIJACK_SYSCALL_STUB(sceCtrlPeekBufferPositive, sceCtrlPeekBufferPositivePatched, sceCtrlPeekBufferPositiveOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlPeekBufferNegative, sceCtrlPeekBufferNegativePatched, sceCtrlPeekBufferNegativeOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferPositive, sceCtrlReadBufferPositivePatched, sceCtrlReadBufferPositiveOrig);
 	HIJACK_SYSCALL_STUB(sceCtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
+	*/
+
+	u32 CtrlPeekBufferPositive = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x3A622550);
+	u32 CtrlPeekBufferNegative = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0xC152080A);
+	u32 CtrlReadBufferPositive = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x1F803938);
+	u32 CtrlReadBufferNegative = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x60B81F86);
+
+	HIJACK_FUNCTION(CtrlPeekBufferPositive, sceCtrlPeekBufferPositivePatched, sceCtrlPeekBufferPositiveOrig);
+	HIJACK_FUNCTION(CtrlPeekBufferNegative, sceCtrlPeekBufferNegativePatched, sceCtrlPeekBufferNegativeOrig);
+	HIJACK_FUNCTION(CtrlReadBufferPositive, sceCtrlReadBufferPositivePatched, sceCtrlReadBufferPositiveOrig);
+	HIJACK_FUNCTION(CtrlReadBufferNegative, sceCtrlReadBufferNegativePatched, sceCtrlReadBufferNegativeOrig);
 
 	#endif
 }
 
 void hookCtrlLatch( void ){
+	/*
 	HIJACK_SYSCALL_STUB(sceCtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
 	HIJACK_SYSCALL_STUB(sceCtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
+	*/
+
+	u32 CtrlPeekLatch = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0xB1D0E5CD);
+	u32 CtrlReadLatch = sctrlHENFindFunction("sceController_Service", "sceCtrl_driver", 0x0B588501);
+
+	HIJACK_FUNCTION(CtrlPeekLatch, MyCtrlPeekLatch, sceCtrlPeekLatch_Func);
+	HIJACK_FUNCTION(CtrlReadLatch, MyCtrlReadLatch, sceCtrlReadLatch_Func);
 }
