@@ -43,12 +43,16 @@ extern void HookFuncSetting( void *addr, void *entry );
 { \
 	u32 func = a; \
 	static u32 patch_buffer[3]; \
+	int _interrupts = pspSdkDisableInterrupts(); \
 	_sw(_lw(func), (u32)patch_buffer); \
 	_sw(_lw(func + 4), (u32)patch_buffer + 8);\
 	MAKE_JUMP((u32)patch_buffer + 4, func + 8); \
 	_sw(0x08000000 | (((u32)(f) >> 2) & 0x03FFFFFF), func); \
 	_sw(0, func + 4); \
 	ptr = (void *)patch_buffer; \
+	sceKernelDcacheWritebackInvalidateAll(); \
+	sceKernelIcacheClearAll(); \
+	pspSdkEnableInterrupts(_interrupts); \
 }
 
 u32 sctrlHENFindFunction(const char *, const char*, u32);
