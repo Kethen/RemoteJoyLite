@@ -118,7 +118,7 @@ jobs:
         cp dxvk-2.5.2-aarch64/aarch64/d3d9.dll aarch64_linux/d3d9.dll
 
     - name: Push package artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: RemoteJoyLite_${{ env.sha_name }}
         path: |
