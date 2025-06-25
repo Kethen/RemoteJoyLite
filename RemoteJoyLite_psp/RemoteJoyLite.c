@@ -381,6 +381,7 @@ static int MainThread( SceSize args, void *argp )
 			int HcountComp = GetHcountMkFrame() - GetHcountUsbWait();
 			debug_printf( "%d\n", HcountComp  );
 			debug_printf( "%d\n", GetHcountUsbWait() );
+			debug_printf("0x%x\n", ScreenBuff);
 		}
 		DebugTrance( 1 );
 #endif
