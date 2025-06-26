@@ -254,20 +254,32 @@ static void UsbOpenDevice( void )
 		usb_find_devices();
 		for ( bus=usb_get_busses(); bus!=NULL; bus=bus->next ){
 			for ( dev=bus->devices; dev!=NULL; dev=dev->next ){
-				if ( dev->descriptor.idVendor != SONY_VID ){ continue; }
-				if ( dev->descriptor.idProduct != HOSTFSDRIVER_PID ){ continue; }
+				if (dev->descriptor.idVendor != SONY_VID || dev->descriptor.idProduct != HOSTFSDRIVER_PID){
+					fprintf(stderr, "%s: not a psp %04x:%04x\n", __func__, dev->descriptor.idVendor, dev->descriptor.idProduct);
+					continue;
+				}
+				fprintf(stderr, "%s: PSP %04x:%04x found!\n", __func__, dev->descriptor.idVendor, dev->descriptor.idProduct);
+
 				UsbDev = usb_open( dev );
-				if ( UsbDev == NULL ){ continue; }
+				if ( UsbDev == NULL ){
+					fprintf(stderr, "%s: failed opening psp usb device\n", __func__);
+					continue;
+				}
+
+				fprintf(stderr, "%s: PSP usb opened!\n", __func__);
+
 				int ret = usb_set_configuration( UsbDev, 1 );
 				if(ret == 0){
+					fprintf(stderr, "%s: set config on psp usb done", __func__);
 					ret = usb_claim_interface( UsbDev, 0 );
 					if (ret == 0){
+						fprintf(stderr, "%s: psp usb interface claimed, ready to go\n", __func__);
 						return;
 					}else{
-						printf("%s: failed to claim interface, %d\n", __func__, ret);
+						fprintf(stderr, "%s: failed to claim interface, %d\n", __func__, ret);
 					}
 				}else{
-					printf("%s: failed to set config, %d\n", __func__, ret);
+					fprintf(stderr, "%s: failed to set config, %d\n", __func__, ret);
 				}
 				usb_close( UsbDev );
 				UsbDev = NULL;
