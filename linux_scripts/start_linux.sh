@@ -5,6 +5,7 @@ script_dir=$(realpath "$script_dir")
 
 cd $script_dir;
 
+export WINEPREFIX="$(pwd)/wine_prefix"
 export WINEDLLOVERRIDES=d3d9=n,b
 
 MODE="JA"
