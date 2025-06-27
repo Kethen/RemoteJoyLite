@@ -3,7 +3,8 @@ set -xe
 script_dir=$(dirname "$0")
 script_dir=$(realpath "$script_dir")
 
-cd $script_dir;
+# Just in case path has spaces
+cd "$script_dir"; 
 
 export WINEPREFIX="$(pwd)/wine_prefix"
 export WINEDLLOVERRIDES=d3d9=n,b
