@@ -329,6 +329,16 @@ static void DoJoyDat( u32 NowButton, u32 value2 )
 /*------------------------------------------------------------------------------*/
 static int MainThread( SceSize args, void *argp )
 {
+	if(!usbModuleLoaded()){
+		sceKernelDelayThread(100000);
+		EARLY_LOG("%s: loading usb module\n", __func__);
+		loadUsbModule();
+
+		sceKernelDelayThread(100000);
+		EARLY_LOG("%s: hooking usb\n", __func__);
+		hookUsbFunc();
+	}
+
 	// don't usb yet
 	sceKernelDelayThread(1000000 * 3);
 
@@ -397,8 +407,10 @@ int module_start( SceSize args, void *argp )
 	EARLY_LOG("%s: begin\n", __func__);
 	#endif
 
-	EARLY_LOG("%s: hooking usb\n", __func__);
-	hookUsbFunc();
+	if (usbModuleLoaded()){
+		EARLY_LOG("%s: hooking usb\n", __func__);
+		hookUsbFunc();
+	}
 
 	EARLY_LOG("%s: hooking interrupt\n", __func__);
 	hookInterrupt();
@@ -421,7 +433,7 @@ int module_start( SceSize args, void *argp )
 		sceKernelIcacheInvalidateRange( (void *)addr, 8 );
 	}
 
-	MainThreadID = sceKernelCreateThread( "RemoteJoyLite", MainThread, 16, 0x800, 0, NULL );
+	MainThreadID = sceKernelCreateThread( "RemoteJoyLite", MainThread, 16, 0x1000, 0, NULL );
 	if ( MainThreadID >= 0 ){ sceKernelStartThread( MainThreadID, args, argp ); }
 	return( 0 );
 }

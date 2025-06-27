@@ -76,6 +76,36 @@ void hookUsbFunc( void )
 }
 #endif
 
+int usbModuleLoaded(){
+	u32 loaded = sctrlHENFindFunction("sceUSB_Driver", "sceUsb", 0xAE5DE6AF);
+	return loaded != NULL;
+}
+
+typedef int (*module_load_function_t)(const char *, int flags, SceKernelLMOption *load_options);
+typedef int (*module_start_function_t)(SceUID modid, int args, void **argp, int *status, void *start_options);
+void loadUsbModule(){
+	module_load_function_t KernelLoadModule = (module_load_function_t)sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x977DE386);
+	module_start_function_t KernelStartModule = (module_start_function_t)sctrlHENFindFunction("sceModuleManager", "ModuleMgrForKernel", 0x50F0C1EC);
+
+	EARLY_LOG("%s: KernelLoadModule 0x%x\n", __func__, KernelLoadModule);
+	EARLY_LOG("%s: KernelStartModule 0x%x\n", __func__, KernelStartModule);
+
+	SceUID modid = KernelLoadModule("flash0:/kd/usb.prx", 0, NULL);
+	if (modid < 0){
+		EARLY_LOG("%s: failed loading usb.prx, 0x%x, this is fatal\n", __func__, modid);
+		return;
+	}
+
+	int status;
+	int start_status = KernelStartModule(modid, 0, NULL, &status, NULL);
+	if (start_status < 0){
+		EARLY_LOG("%s: failed starting usb.prx, 0x%x, this is fatal\n", __func__, start_status);
+		return;
+	}
+
+	EARLY_LOG("%s: usb.prx loaded\n", __func__);
+}
+
 void hookUsbFunc(){
 	u32 UsbStart = GET_JUMP_TARGET(_lw((u32)sceUsbStart));
 	u32 UsbStop = GET_JUMP_TARGET(_lw((u32)sceUsbStop));

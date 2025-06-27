@@ -8,6 +8,8 @@
 /* prototype																	*/
 /*------------------------------------------------------------------------------*/
 extern void hookUsbFunc( void );
+int usbModuleLoaded();
+void loadUsbModule();
 
 #ifndef IS_SELF
 extern int (*sceUsbStart_Func)( const char *, unsigned int, void * );
