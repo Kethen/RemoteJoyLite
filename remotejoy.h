@@ -54,18 +54,18 @@
 
 struct JoyEvent
 {
-	unsigned int magic;
-	int type;
-	unsigned int value1;
-	unsigned int value2;
+	uint32_t magic;
+	int32_t type;
+	uint32_t value1;
+	uint32_t value2;
 } __attribute__((packed));
 
 struct JoyScrHeader
 {
-	unsigned int magic;
-	int mode; /* 0-3 */
-	int size;
-	int ref;
+	uint32_t magic;
+	int32_t mode; /* 0-3 */
+	int32_t size;
+	int32_t ref;
 } __attribute__((packed));
 
 enum USB_ASYNC_CHANNELS
