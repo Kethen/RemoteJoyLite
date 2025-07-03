@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RemoteJoyLite JS</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+    </header>
+
+    <main>
+      <div class="canvases">
+        <div>
+          <span class="canvas-title">RemoteJoyLIte JS</span>
+          <canvas id="worker" width="480" height="272"></canvas>
+
+          <div>
+            <span class="disconnected" id="disconnected">DISCONNECTED</span>
+            <span class="connected" id="connected" style="display: none">CONNECTED</span>
+            <span class="fps" id="fps">FPS: 0</span>
+          </div>
+
+          <div>
+            <button id="worker-button" onclick="scale1x()">
+              Scale 1x
+            </button>
+            <button id="worker-button" onclick="scale2x()">
+              Scale 2x
+            </button>
+            <button id="worker-button" onclick="scale3x()">
+              Scale 3x
+            </button>
+            <button id="worker-button" onclick="fullscreen()">
+              Fullscreen
+            </button>
+          </div>
+
+          <div>
+            <button id="worker-button" onclick="connectPsp()">
+              Connect
+            </button>
+          </div>
+
+          <div>
+            <p>You have to press connect every time you launch game or return to VSH. This is a limitation of WebUSB
+            </p>
+          </div>
+
+<!--TODO
+          <div class="settings">
+            Settings:
+            <hr/>
+            Transfer FPS: <select id="settings_fps"><option value="1">60</option></select>
+            <hr/>
+            Transfer Vsync: <input type="checkbox" id="settings_vsync"/>
+            <hr/>
+            Transfer Address: <select id="settings_fps"><option value="1">60</option></select>
+            <hr/>
+            Transfer Address (PSP-2000): <select id="settings_fps"><option value="1">60</option></select>
+            <hr/>
+            Thread priority: <select id="settings_fps"><option value="1">60</option></select>
+            <hr/>
+            Override psp input: <input type="checkbox" id="settings_vsync"/>
+            <hr/>
+            Debug mode: <input type="checkbox" id="settings_vsync"/>
+            <hr/>
+            Turn psp screen off: <input type="checkbox" id="settings_vsync"/>
+            <hr/>
+          </div>
+-->
+        </div>
+      </div>
+
+
+
+      <footer>
+      </footer>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>
