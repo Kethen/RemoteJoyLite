@@ -1,0 +1,101 @@
+html,
+body {
+  font-family: sans-serif;
+  margin: 2rem;
+}
+
+main,
+footer {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  flex-direction: column;
+  flex-wrap: wrap;
+  text-align: left;
+  margin-bottom: 4rem;
+}
+
+header {
+  font-size: 1em;
+  min-height: 1em;
+  line-height: 1.5em;
+  margin: 1rem;
+  max-width: 50%;
+}
+
+button
+{
+  border-radius: 10px;
+}
+
+canvas {
+  border: 2px solid black;
+  margin: 2rem;
+  image-rendering: pixelated;
+}
+
+button {
+  background: #797676;
+  padding: 10px;
+  margin: 10px;
+  border: 0;
+  color: white;
+  font-size: 1em;
+  max-width: 150px;
+}
+
+button:hover
+{
+  background: rgb(134, 242, 102);
+  transition: transform 0.5s;
+  transform: scale(1.1, 1.1);
+  color: black;
+}
+
+#canvas-description {
+  max-width: 50%;
+  text-align: left;
+}
+
+.canvas-title {
+  display: block;
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.canvases {
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  padding: 2rem;
+}
+
+.disconnected {
+    font-weight: bold;
+    font-size: 20px;
+    color: red;
+}
+
+.connected {
+    font-weight: bold;
+    font-size: 20px;
+    color: green;
+}
+
+.fps {
+    font-weight: bold;
+    font-size: 20px;
+    color: black;
+}
+
+.settings {
+    border-radius: 3px;
+    border: 2px solid black;
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
