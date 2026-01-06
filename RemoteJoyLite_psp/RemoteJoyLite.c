@@ -270,7 +270,7 @@ static void DoJoyCmd( unsigned int value1, unsigned int value2 )
 
 	int idx1 = SCREEN_CMD_GET_ADRESS1(value1);
 	int idx2 = SCREEN_CMD_GET_ADRESS2(value1);
-	if ( (sceKernelGetModel() == 1) && (idx2 != 0xFF) ){
+	if ( (sceKernelGetModel() != 0) && (idx2 != 0xFF) ){
 		ScreenBuff = (void *)(0xAA000000 + idx2*0x40000);
 	} else {
 		ScreenBuff = (void *)(0x48400000 + idx1*0x8000);
