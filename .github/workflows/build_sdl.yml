@@ -82,7 +82,7 @@ jobs:
 
           # libusb Windows binaries (headers + MinGW import/static libs)
           curl -sL \
-            "https://github.com/libusb/libusb/releases/download/v${LIBUSB_VERSION}/libusb-${LIBUSB_VERSION}-binaries.7z" \
+            "https://github.com/libusb/libusb/releases/download/v${LIBUSB_VERSION}/libusb-${LIBUSB_VERSION}.7z" \
             -o libusb.7z
           7z x libusb.7z -olibusb-release -y
 
@@ -113,7 +113,7 @@ jobs:
         if: matrix.os == 'windows'
         run: |
           SDL3_CMAKE_DIR="${GITHUB_WORKSPACE}/SDL3-mingw/SDL3-${SDL_VERSION}/x86_64-w64-mingw32/lib/cmake/SDL3"
-          LIBUSB_ROOT="${GITHUB_WORKSPACE}/libusb-release/libusb-${LIBUSB_VERSION}-binaries"
+          LIBUSB_ROOT="${GITHUB_WORKSPACE}/libusb-release"
 
           cmake -S RemoteJoyLite_sdl -B sdl_build \
             -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-mingw64.cmake" \
