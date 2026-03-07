@@ -84,7 +84,7 @@ jobs:
           curl -sL \
             "https://github.com/libusb/libusb/releases/download/v${LIBUSB_VERSION}/libusb-${LIBUSB_VERSION}-binaries.7z" \
             -o libusb.7z
-          7z x libusb.7z -o libusb-release -y
+          7z x libusb.7z -olibusb-release -y
 
       # ── Build: Linux / macOS ─────────────────────────────────────────────
       - name: Build (Linux / macOS)
