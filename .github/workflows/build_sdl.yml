@@ -68,7 +68,10 @@ jobs:
         if: matrix.os == 'linux'
         run: |
           sudo apt update
-          sudo apt install -y cmake ninja-build libusb-1.0-0-dev
+          sudo apt install -y cmake ninja-build libusb-1.0-0-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+            libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev \
+            libegl1-mesa-dev libgles2-mesa-dev
 
           git clone https://github.com/libsdl-org/SDL \
             --branch release-${SDL_VERSION%.*}.x \
@@ -157,19 +160,21 @@ jobs:
           cmake --build sdl3-aarch64-build
           cmake --install sdl3-aarch64-build
 
-          # Build libusb for aarch64-windows (static, no dll needed)
+          # Build libusb for aarch64-windows using autotools (no CMakeLists.txt)
+          sudo apt install -y autoconf libtool
           curl -sL \
             "https://github.com/libusb/libusb/releases/download/v${LIBUSB_VERSION}/libusb-${LIBUSB_VERSION}.tar.bz2" \
             -o libusb-src.tar.bz2
           tar xjf libusb-src.tar.bz2
-          cmake -S libusb-${LIBUSB_VERSION} -B libusb-aarch64-build \
-            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-aarch64-mingw.cmake" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/libusb-win-aarch64" \
-            -GNinja
-          cmake --build libusb-aarch64-build
-          cmake --install libusb-aarch64-build
+          cd libusb-${LIBUSB_VERSION}
+          ./configure \
+            --host=${MINGW_PREFIX} \
+            --prefix="${GITHUB_WORKSPACE}/libusb-win-aarch64" \
+            CC="${SYSROOT}/bin/${MINGW_PREFIX}-gcc" \
+            --disable-shared --enable-static
+          make -j$(nproc)
+          make install
+          cd "${GITHUB_WORKSPACE}"
 
       # ── Build: Linux / macOS ─────────────────────────────────────────────
       - name: Build (Linux / macOS)
