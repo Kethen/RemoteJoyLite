@@ -19,8 +19,7 @@ endif()
 
 if(NOT LIBUSB_FOUND)
   find_path(LIBUSB_INCLUDE_DIR
-    NAMES libusb.h
-    PATH_SUFFIXES libusb-1.0
+    NAMES libusb-1.0/libusb.h libusb.h
     HINTS "${LIBUSB_ROOT}/include"
   )
   find_library(LIBUSB_LIBRARY

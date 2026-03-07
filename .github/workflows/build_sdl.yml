@@ -86,6 +86,11 @@ jobs:
             -o libusb.7z
           7z x libusb.7z -olibusb-release -y
 
+          # libusb Windows .7z ships include/libusb.h directly (no libusb-1.0/ subdir).
+          # Create the expected subdirectory so #include <libusb-1.0/libusb.h> resolves.
+          mkdir -p libusb-release/include/libusb-1.0
+          cp libusb-release/include/libusb.h libusb-release/include/libusb-1.0/libusb.h
+
       # ── Build: Linux / macOS ─────────────────────────────────────────────
       - name: Build (Linux / macOS)
         if: matrix.os != 'windows'
