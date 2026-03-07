@@ -5,6 +5,8 @@ on: [ push, pull_request, workflow_dispatch ]
 env:
   SDL_VERSION: "3.2.8"
   LIBUSB_VERSION: "1.0.27"
+  LLVM_MINGW_TAG: "20241217"
+  LLVM_MINGW_PKG: "llvm-mingw-20241217-ucrt-ubuntu-20.04-x86_64"
 
 jobs:
   build_sdl:
@@ -19,16 +21,36 @@ jobs:
             os: linux
             output: RemoteJoyLite-cross
 
-          # ── Native macOS (arm64 runner) ─────────────────────────────────
+          # ── Native Linux aarch64 ────────────────────────────────────────
+          - name: linux-aarch64
+            runs-on: ubuntu-24.04-arm
+            os: linux
+            output: RemoteJoyLite-cross
+
+          # ── Native macOS arm64 ──────────────────────────────────────────
           - name: macos-arm64
             runs-on: macos-latest
             os: macos
             output: RemoteJoyLite-cross
 
-          # ── Windows x86_64 (cross-compiled from Linux with mingw) ───────
+          # ── Native macOS x86_64 ─────────────────────────────────────────
+          - name: macos-x86_64
+            runs-on: macos-13
+            os: macos
+            output: RemoteJoyLite-cross
+
+          # ── Windows x86_64 (cross-compiled, prebuilt SDL3 + libusb) ─────
           - name: windows-x86_64
             runs-on: ubuntu-22.04
             os: windows
+            mingw_prefix: x86_64-w64-mingw32
+            output: RemoteJoyLite-cross.exe
+
+          # ── Windows aarch64 (cross-compiled with llvm-mingw, source build)
+          - name: windows-aarch64
+            runs-on: ubuntu-22.04
+            os: windows
+            mingw_prefix: aarch64-w64-mingw32
             output: RemoteJoyLite-cross.exe
 
     runs-on: ${{ matrix.runs-on }}
@@ -67,29 +89,87 @@ jobs:
         if: matrix.os == 'macos'
         run: brew install cmake ninja sdl3 libusb
 
-      # ── Windows: install mingw, download SDL3 + libusb prebuilts ────────
+      # ── Windows common: apt packages + SDL3 prebuilt + libusb prebuilt ───
+      # Note: SDL3 mingw zip only has i686/x86_64; aarch64 is built from source below.
+      # Note: libusb prebuilt only has MinGW32/MinGW64; aarch64 is built from source below.
       - name: Install Windows cross-compile dependencies
         if: matrix.os == 'windows'
         run: |
           sudo apt update
-          sudo apt install -y cmake ninja-build mingw-w64 p7zip-full unzip
+          sudo apt install -y cmake ninja-build mingw-w64 p7zip-full unzip xz-utils
 
-          # SDL3 mingw development package
+          # llvm-mingw: provides aarch64-w64-mingw32-* and x86_64-w64-mingw32-* toolchains
+          curl -sL \
+            "https://github.com/mstorsjo/llvm-mingw/releases/download/${LLVM_MINGW_TAG}/${LLVM_MINGW_PKG}.tar.xz" \
+            | xz -d | tar -C "${GITHUB_WORKSPACE}" -xv --strip-components=0 \
+                --wildcards "${LLVM_MINGW_PKG}/bin/*" \
+                --wildcards "${LLVM_MINGW_PKG}/*/sysroot/*" \
+                --wildcards "${LLVM_MINGW_PKG}/lib/*" \
+                --wildcards "${LLVM_MINGW_PKG}/include/*" 2>/dev/null || \
+          curl -sL \
+            "https://github.com/mstorsjo/llvm-mingw/releases/download/${LLVM_MINGW_TAG}/${LLVM_MINGW_PKG}.tar.xz" \
+            | xz -d | tar -C "${GITHUB_WORKSPACE}" -x
+          echo "${GITHUB_WORKSPACE}/${LLVM_MINGW_PKG}/bin" >> $GITHUB_PATH
+
+          # SDL3 mingw dev package (i686 + x86_64 prebuilt)
           curl -sL \
             "https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL3-devel-${SDL_VERSION}-mingw.zip" \
             -o SDL3-mingw.zip
           unzip -q SDL3-mingw.zip -d SDL3-mingw
 
-          # libusb Windows binaries (headers + MinGW import/static libs)
+          # libusb prebuilt (includes headers + MinGW32/MinGW64 dlls)
           curl -sL \
             "https://github.com/libusb/libusb/releases/download/v${LIBUSB_VERSION}/libusb-${LIBUSB_VERSION}.7z" \
             -o libusb.7z
           7z x libusb.7z -olibusb-release -y
-
-          # libusb Windows .7z ships include/libusb.h directly (no libusb-1.0/ subdir).
-          # Create the expected subdirectory so #include <libusb-1.0/libusb.h> resolves.
+          # The .7z puts libusb.h directly under include/ without the libusb-1.0/ subdir
           mkdir -p libusb-release/include/libusb-1.0
           cp libusb-release/include/libusb.h libusb-release/include/libusb-1.0/libusb.h
+
+      # ── Windows aarch64: build SDL3 + libusb from source ────────────────
+      - name: Build SDL3 and libusb from source for Windows aarch64
+        if: matrix.os == 'windows' && matrix.mingw_prefix == 'aarch64-w64-mingw32'
+        run: |
+          SYSROOT="${GITHUB_WORKSPACE}/${LLVM_MINGW_PKG}"
+          MINGW_PREFIX="${{ matrix.mingw_prefix }}"
+
+          cat > toolchain-aarch64-mingw.cmake << EOF
+          set(CMAKE_SYSTEM_NAME Windows)
+          set(CMAKE_C_COMPILER   ${SYSROOT}/bin/${MINGW_PREFIX}-gcc)
+          set(CMAKE_CXX_COMPILER ${SYSROOT}/bin/${MINGW_PREFIX}-g++)
+          set(CMAKE_RC_COMPILER  ${SYSROOT}/bin/${MINGW_PREFIX}-windres)
+          set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+          set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+          set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+          EOF
+
+          # Build SDL3 for aarch64-windows
+          curl -sL \
+            "https://github.com/libsdl-org/SDL/releases/download/release-${SDL_VERSION}/SDL3-${SDL_VERSION}.tar.gz" \
+            -o SDL3-src.tar.gz
+          tar xzf SDL3-src.tar.gz
+          cmake -S SDL3-${SDL_VERSION} -B sdl3-aarch64-build \
+            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-aarch64-mingw.cmake" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/sdl3-win-aarch64" \
+            -GNinja
+          cmake --build sdl3-aarch64-build
+          cmake --install sdl3-aarch64-build
+
+          # Build libusb for aarch64-windows (static, no dll needed)
+          curl -sL \
+            "https://github.com/libusb/libusb/releases/download/v${LIBUSB_VERSION}/libusb-${LIBUSB_VERSION}.tar.bz2" \
+            -o libusb-src.tar.bz2
+          tar xjf libusb-src.tar.bz2
+          cmake -S libusb-${LIBUSB_VERSION} -B libusb-aarch64-build \
+            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-aarch64-mingw.cmake" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_INSTALL_PREFIX="${GITHUB_WORKSPACE}/libusb-win-aarch64" \
+            -GNinja
+          cmake --build libusb-aarch64-build
+          cmake --install libusb-aarch64-build
 
       # ── Build: Linux / macOS ─────────────────────────────────────────────
       - name: Build (Linux / macOS)
@@ -100,47 +180,77 @@ jobs:
             -GNinja
           cmake --build sdl_build
 
-      # ── Build: Windows cross-compile ─────────────────────────────────────
-      - name: Write mingw toolchain file
-        if: matrix.os == 'windows'
+      # ── Build: Windows x86_64 ────────────────────────────────────────────
+      - name: Build (Windows x86_64)
+        if: matrix.os == 'windows' && matrix.mingw_prefix == 'x86_64-w64-mingw32'
         run: |
-          cat > toolchain-mingw64.cmake << 'EOF'
+          MINGW_PREFIX="${{ matrix.mingw_prefix }}"
+          SDL3_CMAKE_DIR="${GITHUB_WORKSPACE}/SDL3-mingw/SDL3-${SDL_VERSION}/${MINGW_PREFIX}/lib/cmake/SDL3"
+          LIBUSB_ROOT="${GITHUB_WORKSPACE}/libusb-release"
+
+          cat > toolchain-mingw.cmake << EOF
           set(CMAKE_SYSTEM_NAME Windows)
-          set(CMAKE_C_COMPILER   x86_64-w64-mingw32-gcc)
-          set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
-          set(CMAKE_RC_COMPILER  x86_64-w64-mingw32-windres)
+          set(CMAKE_C_COMPILER   ${MINGW_PREFIX}-gcc)
+          set(CMAKE_CXX_COMPILER ${MINGW_PREFIX}-g++)
+          set(CMAKE_RC_COMPILER  ${MINGW_PREFIX}-windres)
           set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
           set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
           set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
           EOF
 
-      - name: Build (Windows)
-        if: matrix.os == 'windows'
-        run: |
-          SDL3_CMAKE_DIR="${GITHUB_WORKSPACE}/SDL3-mingw/SDL3-${SDL_VERSION}/x86_64-w64-mingw32/lib/cmake/SDL3"
-          LIBUSB_ROOT="${GITHUB_WORKSPACE}/libusb-release"
-
           cmake -S RemoteJoyLite_sdl -B sdl_build \
-            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-mingw64.cmake" \
+            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-mingw.cmake" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSDL3_DIR="${SDL3_CMAKE_DIR}" \
             -DLIBUSB_ROOT="${LIBUSB_ROOT}" \
             -GNinja
           cmake --build sdl_build
 
-          # Bundle the runtime DLLs next to the executable
-          SDL3_BIN="${GITHUB_WORKSPACE}/SDL3-mingw/SDL3-${SDL_VERSION}/x86_64-w64-mingw32/bin"
-          LIBUSB_DLL="${LIBUSB_ROOT}/MinGW64/dll"
-          cp "${SDL3_BIN}/SDL3.dll"         sdl_build/
-          cp "${LIBUSB_DLL}/libusb-1.0.dll" sdl_build/
+          cp "${GITHUB_WORKSPACE}/SDL3-mingw/SDL3-${SDL_VERSION}/${MINGW_PREFIX}/bin/SDL3.dll" sdl_build/
+          cp "${LIBUSB_ROOT}/MinGW64/dll/libusb-1.0.dll" sdl_build/
 
-      # ── Collect artifacts ────────────────────────────────────────────────
+      # ── Build: Windows aarch64 ───────────────────────────────────────────
+      - name: Build (Windows aarch64)
+        if: matrix.os == 'windows' && matrix.mingw_prefix == 'aarch64-w64-mingw32'
+        run: |
+          MINGW_PREFIX="${{ matrix.mingw_prefix }}"
+          SYSROOT="${GITHUB_WORKSPACE}/${LLVM_MINGW_PKG}"
+          SDL3_CMAKE_DIR="${GITHUB_WORKSPACE}/sdl3-win-aarch64/lib/cmake/SDL3"
+          LIBUSB_ROOT="${GITHUB_WORKSPACE}/libusb-win-aarch64"
+
+          cat > toolchain-mingw.cmake << EOF
+          set(CMAKE_SYSTEM_NAME Windows)
+          set(CMAKE_C_COMPILER   ${SYSROOT}/bin/${MINGW_PREFIX}-gcc)
+          set(CMAKE_CXX_COMPILER ${SYSROOT}/bin/${MINGW_PREFIX}-g++)
+          set(CMAKE_RC_COMPILER  ${SYSROOT}/bin/${MINGW_PREFIX}-windres)
+          set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+          set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+          set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+          EOF
+
+          cmake -S RemoteJoyLite_sdl -B sdl_build \
+            -DCMAKE_TOOLCHAIN_FILE="${GITHUB_WORKSPACE}/toolchain-mingw.cmake" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSDL3_DIR="${SDL3_CMAKE_DIR}" \
+            -DLIBUSB_ROOT="${LIBUSB_ROOT}" \
+            -GNinja
+          cmake --build sdl_build
+
+          # Bundle SDL3.dll; libusb was linked statically
+          cp "${GITHUB_WORKSPACE}/sdl3-win-aarch64/bin/SDL3.dll" sdl_build/
+
+      # ── Stage and upload artifacts ───────────────────────────────────────
+      - name: Stage artifacts
+        shell: bash
+        run: |
+          mkdir -p artifact
+          cp "sdl_build/${{ matrix.output }}" artifact/
+          [ -f sdl_build/SDL3.dll       ] && cp sdl_build/SDL3.dll       artifact/ || true
+          [ -f sdl_build/libusb-1.0.dll ] && cp sdl_build/libusb-1.0.dll artifact/ || true
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: RemoteJoyLite-sdl-${{ matrix.name }}-${{ env.sha_name }}
-          path: |
-            sdl_build/${{ matrix.output }}
-            sdl_build/SDL3.dll
-            sdl_build/libusb-1.0.dll
+          path: artifact/
           if-no-files-found: error
