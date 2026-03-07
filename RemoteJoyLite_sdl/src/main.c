@@ -37,7 +37,13 @@ static uint8_t gBufMode;
 
 static void usbInit()
 {
+  // libusb_init_context was introduced in libusb 1.0.27 (LIBUSB_API_VERSION 0x0100010A).
+  // Ubuntu 22.04 ships 1.0.25 (0x01000108) which does NOT have this function.
+#if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x0100010A
   libusb_init_context(NULL, NULL, 0);
+#else
+  libusb_init(NULL);
+#endif
 }
 
 static void usbQuit()
@@ -123,7 +129,7 @@ static void remotejoyAsync(void *read, int read_len)
   {
     // dprintf( 0, 0, "%s", (void *)(cmd+1) );
     printf("psp debug message begin:\n");
-    printf("%s", (void *)(cmd + 1));
+    printf("%s", (char *)(cmd + 1));
     printf("psp debug message end:\n");
   }
 }
@@ -415,10 +421,12 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     case SDL_EVENT_QUIT:
       return SDL_APP_SUCCESS;
     case SDL_EVENT_GAMEPAD_ADDED:
+    {
       // TODO: handle multiple gamepads
       const SDL_JoystickID which = event->gdevice.which;
       gGamepad                   = SDL_OpenGamepad(which);
       break;
+    }
     case SDL_EVENT_GAMEPAD_REMOVED:
       // TODO
       break;
