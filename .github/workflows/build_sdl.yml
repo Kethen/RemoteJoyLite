@@ -35,7 +35,7 @@ jobs:
 
           # ── Native macOS x86_64 ─────────────────────────────────────────
           - name: macos-x86_64
-            runs-on: macos-13
+            runs-on: macos-15-intel
             os: macos
             output: RemoteJoyLite-cross
 
