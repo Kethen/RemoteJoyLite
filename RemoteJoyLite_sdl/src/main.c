@@ -346,6 +346,107 @@ static int UsbThread(void *ptr)
   return 0;
 }
 
+static void UpdateKeyboardInput(void)
+{
+  const uint8_t *state = (const uint8_t *)SDL_GetKeyboardState(NULL);
+
+  uint32_t buttons = 0;
+
+  // PPSSPP-style keyboard defaults:
+  // SELECT  - V
+  if (state[SDL_SCANCODE_V])
+  {
+    buttons |= (1u << 0); // PSP_CTRL_SELECT
+  }
+  // START   - Space
+  if (state[SDL_SCANCODE_SPACE])
+  {
+    buttons |= (1u << 3); // PSP_CTRL_START
+  }
+
+  // D-Pad   - Arrow keys
+  if (state[SDL_SCANCODE_UP])
+  {
+    buttons |= (1u << 4); // PSP_CTRL_UP
+  }
+  if (state[SDL_SCANCODE_RIGHT])
+  {
+    buttons |= (1u << 5); // PSP_CTRL_RIGHT
+  }
+  if (state[SDL_SCANCODE_DOWN])
+  {
+    buttons |= (1u << 6); // PSP_CTRL_DOWN
+  }
+  if (state[SDL_SCANCODE_LEFT])
+  {
+    buttons |= (1u << 7); // PSP_CTRL_LEFT
+  }
+
+  // Shoulder buttons - Q / W
+  if (state[SDL_SCANCODE_Q])
+  {
+    buttons |= (1u << 8); // PSP_CTRL_LTRIGGER
+  }
+  if (state[SDL_SCANCODE_W])
+  {
+    buttons |= (1u << 9); // PSP_CTRL_RTRIGGER
+  }
+
+  // Face buttons - A Z X S  (□ × ○ △)
+  if (state[SDL_SCANCODE_S])
+  {
+    buttons |= (1u << 12); // TRIANGLE
+  }
+  if (state[SDL_SCANCODE_X])
+  {
+    buttons |= (1u << 13); // CIRCLE
+  }
+  if (state[SDL_SCANCODE_Z])
+  {
+    buttons |= (1u << 14); // CROSS
+  }
+  if (state[SDL_SCANCODE_A])
+  {
+    buttons |= (1u << 15); // SQUARE
+  }
+
+  // Optional extra buttons similar to PPSSPP style
+  if (state[SDL_SCANCODE_HOME])
+  {
+    buttons |= (1u << 16); // HOME
+  }
+
+  // Analog stick (left) - I J K L
+  uint8_t laxis_x = 0x80;
+  uint8_t laxis_y = 0x80;
+
+  if (state[SDL_SCANCODE_J] && !state[SDL_SCANCODE_L])
+  {
+    laxis_x = 0x00; // left
+  }
+  else if (state[SDL_SCANCODE_L] && !state[SDL_SCANCODE_J])
+  {
+    laxis_x = 0xFF; // right
+  }
+
+  if (state[SDL_SCANCODE_I] && !state[SDL_SCANCODE_K])
+  {
+    laxis_y = 0x00; // up
+  }
+  else if (state[SDL_SCANCODE_K] && !state[SDL_SCANCODE_I])
+  {
+    laxis_y = 0xFF; // down
+  }
+
+  uint8_t raxis_x = 0x80;
+  uint8_t raxis_y = 0x80;
+
+  uint32_t axisData = (uint32_t)laxis_x | ((uint32_t)raxis_x << 8) | ((uint32_t)laxis_y << 16) |
+                      ((uint32_t)raxis_y << 24);
+
+  sendEvent(TYPE_JOY_DAT, buttons, axisData);
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv)
 {
   SDL_SetAppMetadata("RemoteJoyLite", "0.19", "com.psparchive.rjl");
@@ -492,6 +593,12 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
         default:
           break;
       }
+      // Update PSP input state from keyboard using PPSSPP-style defaults
+      UpdateKeyboardInput();
+      break;
+    case SDL_EVENT_KEY_UP:
+      // Re-evaluate keyboard state when keys are released
+      UpdateKeyboardInput();
       break;
     default:
       break;
