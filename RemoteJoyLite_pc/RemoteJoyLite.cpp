@@ -108,36 +108,116 @@ static int UsbhostfsReady = 0;
 static int UsbhostfsExit  = -1;
 static int UsbhostError = 0;
 static int PSPReady = 0;
+static int g_bad_proto_packets = 0;
 
 /*------------------------------------------------------------------------------*/
 /* async_remotejoy																*/
 /*------------------------------------------------------------------------------*/
-static void async_remotejoy( void *read, int read_len )
+static void async_remotejoy(void *read, int read_len)
 {
-	if ( read_len < (int)sizeof(JoyScrHeader) ){ return; }
+    if (read == NULL) {
+        return;
+    }
 
-	JoyScrHeader *cmd = (JoyScrHeader *)read;
+    if (read_len < (int)sizeof(JoyScrHeader)) {
+        return;
+    }
 
-	if ( cmd->mode == ASYNC_CMD_DEBUG ){
-		dprintf( 0, 0, "%s", (void *)(cmd+1) );
-		printf("psp debug message begin:\n");
-		printf("%s", (void *)(cmd + 1));
-		printf("psp debug message end:\n");
-	}
+    JoyScrHeader *cmd = (JoyScrHeader *)read;
+
+    if ((uint32_t)cmd->magic != JOY_MAGIC) {
+        printf("%s: bad JoyScrHeader.magic: 0x%08X\n",
+               __func__, (unsigned int)cmd->magic);
+        return;
+    }
+
+    if (cmd->size < 0) {
+        printf("%s: negative async payload size: %d\n", __func__, cmd->size);
+        return;
+    }
+
+    const int payload_available = read_len - (int)sizeof(JoyScrHeader);
+    if (cmd->size > payload_available) {
+        printf("%s: truncated async payload: size=%d available=%d\n",
+               __func__, cmd->size, payload_available);
+        return;
+    }
+
+    if (cmd->mode == ASYNC_CMD_DEBUG) {
+        const char *msg = (const char *)(cmd + 1);
+
+        // don't assume NULL-terminated string from the device
+        int safe_len = cmd->size;
+        while (safe_len > 0 && msg[safe_len - 1] == '\0') {
+            --safe_len;
+        }
+
+        printf("psp debug message begin:\n");
+        printf("%.*s", safe_len, msg);
+        printf("\npsp debug message end:\n");
+    }
 }
 
 /*------------------------------------------------------------------------------*/
 /* bulk_remotejoy																*/
 /*------------------------------------------------------------------------------*/
-static void bulk_remotejoy( void *read, int read_len )
+static void bulk_remotejoy(void *read, int read_len)
 {
-	JoyScrHeader *cmd = (JoyScrHeader *)read;
+    if (read == NULL) {
+        return;
+    }
 
-	work.buff_mode   = cmd->mode;
-	work.buff_vcount = cmd->ref;
-	WaitForSingleObject( work.buff_sema, INFINITE );
-	memcpy( work.buff, (void *)(cmd+1), cmd->size );
-	ReleaseSemaphore( work.buff_sema, 1, NULL );
+    if (read_len < (int)sizeof(JoyScrHeader)) {
+        printf("%s: short packet (%d < %zu)\n",
+               __func__, read_len, sizeof(JoyScrHeader));
+        return;
+    }
+
+    JoyScrHeader *cmd = (JoyScrHeader *)read;
+
+    if ((uint32_t)cmd->magic != JOY_MAGIC) {
+        printf("%s: bad JoyScrHeader.magic: 0x%08X\n",
+               __func__, (unsigned int)cmd->magic);
+        return;
+    }
+
+    if (cmd->size < 0) {
+        printf("%s: negative payload size: %d\n", __func__, cmd->size);
+        return;
+    }
+
+    const int header_size = (int)sizeof(JoyScrHeader);
+    const int payload_available = read_len - header_size;
+
+    if (cmd->size > payload_available) {
+        printf("%s: truncated payload: size=%d available=%d\n",
+               __func__, cmd->size, payload_available);
+        return;
+    }
+
+    const int max_frame_bytes = (int)sizeof(work.buff);
+    if (cmd->size > max_frame_bytes) {
+        printf("%s: oversized frame: size=%d max=%d\n",
+               __func__, cmd->size, max_frame_bytes);
+        return;
+    }
+
+    // filter out obviously incorrect modes
+    // 0..3 = base format, higher bits are used as flags
+    // leave only log
+    if ((cmd->mode & 0x0F) > 3) {
+        printf("%s: suspicious mode: 0x%08X\n",
+               __func__, (unsigned int)cmd->mode);
+        return;
+    }
+
+    WaitForSingleObject(work.buff_sema, INFINITE);
+
+    work.buff_mode   = cmd->mode;
+    work.buff_vcount = cmd->ref;
+    memcpy(work.buff, (const void *)(cmd + 1), (size_t)cmd->size);
+
+    ReleaseSemaphore(work.buff_sema, 1, NULL);
 }
 
 /*------------------------------------------------------------------------------*/
@@ -183,7 +263,24 @@ static void handle_hello( void )
 /*------------------------------------------------------------------------------*/
 /* do_default																	*/
 /*------------------------------------------------------------------------------*/
-static void do_default( void *read, int read_len ){}
+static void do_default(void *read, int read_len)
+{
+    if (read_len >= 4) {
+        uint32_t magic = *(uint32_t *)read;
+        printf("%s: unknown packet magic 0x%08X len=%d\n",
+               __func__, (unsigned int)magic, read_len);
+    } else {
+        printf("%s: tiny unknown packet len=%d\n", __func__, read_len);
+    }
+
+    g_bad_proto_packets++;
+
+    if (g_bad_proto_packets >= 8) {
+        printf("Too many invalid packets; device isn't probably speaking RemoteJoyLite protocol.\n");
+        UsbhostError = 1;
+        UsbhostfsExit = 1;
+    }
+}
 
 /*------------------------------------------------------------------------------*/
 /* do_hostfs																	*/
@@ -196,6 +293,7 @@ static void do_hostfs( void *read, int read_len )
 
 	if ( (int)cmd->command == HOSTFS_CMD_HELLO(RJL_VERSION) ){
 		UsbhostError = 0;
+		g_bad_proto_packets = 0;
 		handle_hello();
 	} else {
 		UsbhostError = 1;
@@ -221,24 +319,74 @@ static void do_async( void *read, int read_len )
 /*------------------------------------------------------------------------------*/
 static char BulkBlock[HOSTFS_BULK_MAXWRITE];
 
-static void do_bulk( void *read, int read_len )
+static void do_bulk(void *read, int read_len)
 {
-	BulkCommand *cmd = (BulkCommand *)read;
+    if (read == NULL) {
+        return;
+    }
 
-	if ( read_len < (int)sizeof(BulkCommand) ){ return; }
+    if (read_len < (int)sizeof(BulkCommand)) {
+        printf("%s: short bulk header (%d < %zu)\n",
+               __func__, read_len, sizeof(BulkCommand));
+        return;
+    }
 
-	int read_size = 0;
-	int data_size = cmd->size;
+    BulkCommand *cmd = (BulkCommand *)read;
 
-	while ( read_size < data_size ){
-		int rest_size = data_size - read_size;
-		if ( rest_size > HOSTFS_MAX_BLOCK ){ rest_size = HOSTFS_MAX_BLOCK; }
-		int ret = usb_bulk_read( UsbDev, 0x81, &BulkBlock[read_size], rest_size, 3000 );
-		if (ret == -110 || ret == -ETIMEDOUT) {continue;}
-		if ( ret < 0 ){; break;}
-		read_size += ret;
-	}
-	bulk_remotejoy( BulkBlock, data_size );
+    if ((uint32_t)cmd->magic != BULK_MAGIC) {
+        printf("%s: bad BulkCommand.magic: 0x%08X\n",
+               __func__, (unsigned int)cmd->magic);
+        return;
+    }
+
+    if ((int32_t)cmd->size < 0) {
+        printf("%s: negative bulk size: %d\n", __func__, (int32_t)cmd->size);
+        return;
+    }
+
+    const int data_size = (int)cmd->size;
+
+    if (data_size == 0) {
+        // empty payload - nothing to do
+        return;
+    }
+
+    if (data_size > (int)sizeof(BulkBlock)) {
+        printf("%s: bulk payload too large: %d > %zu\n",
+               __func__, data_size, sizeof(BulkBlock));
+        return;
+    }
+
+    int read_size = 0;
+
+    while (read_size < data_size) {
+        int rest_size = data_size - read_size;
+        if (rest_size > HOSTFS_MAX_BLOCK) {
+            rest_size = HOSTFS_MAX_BLOCK;
+        }
+
+        int ret = usb_bulk_read(UsbDev, 0x81, &BulkBlock[read_size], rest_size, 3000);
+
+        if (ret == -110 || ret == -ETIMEDOUT) {
+            continue;
+        }
+
+        if (ret <= 0) {
+            printf("%s: usb_bulk_read failed: ret=%d after %d/%d bytes\n",
+                   __func__, ret, read_size, data_size);
+            return;
+        }
+
+        read_size += ret;
+    }
+
+    if (read_size != data_size) {
+        printf("%s: incomplete bulk read: got=%d expected=%d\n",
+               __func__, read_size, data_size);
+        return;
+    }
+
+    bulk_remotejoy(BulkBlock, data_size);
 }
 
 /********************************************************************************/
