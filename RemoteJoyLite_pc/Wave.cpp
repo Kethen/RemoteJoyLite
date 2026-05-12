@@ -101,10 +101,10 @@ static void WaveInInit( void )
 /*------------------------------------------------------------------------------*/
 /* WaveInProc																	*/
 /*------------------------------------------------------------------------------*/
-static VOID CALLBACK WaveInProc( HWAVEIN hwi, UINT msg, DWORD inst, DWORD dwP1, DWORD dwP2 )
+static VOID CALLBACK WaveInProc( HWAVEIN hwi, UINT msg, DWORD_PTR inst, DWORD_PTR dwP1, DWORD_PTR dwP2 )
 {
 	switch ( msg ){
-	case WIM_DATA  : ((WAVEHDR *)dwP1)->dwUser |= 0x0001;	break;
+	case WIM_DATA  : ((WAVEHDR *)(uintptr_t)dwP1)->dwUser |= 0x0001; break;
 	case WIM_OPEN  : WaveInStatus = WAVEINSTATUS_OPEN;		break;
 	case WIM_CLOSE : WaveInStatus = WAVEINSTATUS_CLOSE;		break;
 	}
@@ -221,10 +221,10 @@ static void WaveOutInit( void )
 /*------------------------------------------------------------------------------*/
 /* WaveOutProc																	*/
 /*------------------------------------------------------------------------------*/
-static VOID CALLBACK WaveOutProc( HWAVEOUT hwo, UINT msg, DWORD inst, DWORD dwP1, DWORD dwP2 )
+static VOID CALLBACK WaveOutProc( HWAVEOUT hwo, UINT msg, DWORD_PTR inst, DWORD_PTR dwP1, DWORD_PTR dwP2 )
 {
 	switch ( msg ){
-	case WOM_DONE  : ((WAVEHDR *)dwP1)->dwUser |= 0x0010;	break;
+	case WOM_DONE  : ((WAVEHDR *)(uintptr_t)dwP1)->dwUser |= 0x0010; break;
 	case WOM_OPEN  : WaveOutStatus = WAVEOUTSTATUS_OPEN;	break;
 	case WOM_CLOSE : WaveOutStatus = WAVEOUTSTATUS_CLOSE;	break;
 	}
