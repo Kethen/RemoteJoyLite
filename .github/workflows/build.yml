@@ -3,6 +3,7 @@ name: Build PC package
 on: [ push, pull_request, workflow_dispatch ]
 
 # written referencing apollo save tool psp's CI
+# SDL cross-platform build is handled by build_sdl.yml
 
 jobs:
   build_pkg:
@@ -10,7 +11,7 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set env vars
       run: |
